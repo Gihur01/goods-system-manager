@@ -141,6 +141,9 @@
         <el-table-column label="销量" width="100" align="center">
           <template slot-scope="scope">{{scope.row.sale}}</template>
         </el-table-column>
+        <el-table-column label="test" width="100" align="center">
+          <template slot-scope="scope">{{scope.row.verifyStatus}}</template>
+        </el-table-column>
         <el-table-column label="审核状态" width="100" align="center">
           <template slot-scope="scope">
             <p>{{scope.row.verifyStatus | verifyStatusFilter}}</p>
@@ -371,7 +374,7 @@
       this.getBrandList();
       this.getProductCateList();
     },
-    watch: {
+    watlch: {
       selectProductCateValue: function (newValue) {
         if (newValue != null && newValue.length == 2) {
           this.listQuery.productCategoryId = newValue[1];

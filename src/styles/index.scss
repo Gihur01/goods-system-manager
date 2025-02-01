@@ -156,3 +156,25 @@ a:hover {
   color: #909399;
 }
 
+.grid-container{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 250px);
+  gap: 16px;
+  // width: 100%;
+  
+}
+
+.grid-item{
+  background: #e2e8f0;
+  // padding: 16px;
+  // border-radius: 8px;
+  width: 250px;
+  text-align: left;
+
+}
+
+.product-title{
+  white-space: nowrap; /* Prevent text wrapping */
+  overflow: hidden; /* Hide overflowing text */
+  text-overflow: ellipsis; /* Show "..." for overflowed text */
+}

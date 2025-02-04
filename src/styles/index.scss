@@ -178,3 +178,18 @@ a:hover {
   overflow: hidden; /* Hide overflowing text */
   text-overflow: ellipsis; /* Show "..." for overflowed text */
 }
+
+.month-picker{
+  max-width: 180px;
+}
+
+.product-title{
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+.item-price{
+  color: #EB0D0D;
+}
+.item-stock{
+  color: #DBAB22;
+}

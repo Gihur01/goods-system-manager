@@ -1,5 +1,6 @@
 <template> 
   <div class="app-container">
+    
     <el-card class="filter-container" shadow="never">
       <div>
         <i class="el-icon-search"></i>
@@ -29,21 +30,27 @@
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="上架状态：">
-            <el-select v-model="listQuery.publishStatus" placeholder="全部" clearable>
-              <el-option v-for="item in publishStatusOptions" :key="item.value" :label="item.label" :value="item.value">
-              </el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item label="审核状态：">
-            <el-select v-model="listQuery.verifyStatus" placeholder="全部" clearable>
-              <el-option v-for="item in verifyStatusOptions" :key="item.value" :label="item.label" :value="item.value">
-              </el-option>
-            </el-select>
-          </el-form-item>
+
         </el-form>
       </div>
     </el-card>
+    <el-card class="month-selection-container" shadow="never">
+      
+      <span >上架时间</span>
+      <el-date-picker
+        class="month-picker"
+        v-model="selectedStartMonth"
+        type="month"
+        placeholder="选择开始月份">
+      </el-date-picker>
+
+      <el-date-picker
+        class="month-picker"
+        v-model="selectedEndMonth"
+        type="month"
+        placeholder="选择截止月份">
+      </el-date-picker>
+  </el-card>
     <el-card class="operate-container" shadow="never">
       <i class="el-icon-tickets"></i>
       <span>数据列表</span>
@@ -56,15 +63,12 @@
       <div class="grid-container">
         
           <el-card class="grid-item" v-for="(item, index) in list" :key="item.id">
-            <!-- <el-image
-              style=" height: 100px"
-              :src="item.pic"
-              fit="fill"></el-image> -->
+
               <img style="width: 200px" :src="item.pic">
             <div class="product-title">{{ item.name }}</div>
             <div style="display: flex; justify-content: space-between;">
-              <div class="item-price">${{ item.price }}</div>
-              <div class="item-stock">{{ item.stock }}</div>
+              <div class="item-price">￥{{ item.price }}</div>
+              <div class="item-stock">库存: {{ item.stock }}</div>
             </div>
           </el-card>
         
@@ -237,6 +241,8 @@ export default {
   name: "productList",
   data() {
     return {
+      selectedStartMonth: '',
+      selectedEndMonth: '',
       editSkuInfo: {
         dialogVisible: false,
         productId: null,
@@ -302,7 +308,8 @@ export default {
       }, {
         value: 0,
         label: '未审核'
-      }]
+      }],
+      
     }
   },
   created() {   //"created" hook; at this point, methods are loaded, but dom not constructed. Best for data fetching.

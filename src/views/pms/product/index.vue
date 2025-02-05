@@ -1,6 +1,6 @@
 <template> 
   <div class="app-container">
-    
+
     <el-card class="filter-container" shadow="never">
       <div>
         <i class="el-icon-search"></i>
@@ -14,6 +14,9 @@
       </div>
       <div style="margin-top: 15px">
         <el-form :inline="true" :model="listQuery" size="small" label-width="140px">
+        <el-form-item label="所在仓库：">
+                    <el-input style="width: 203px" v-model="listQuery.warehouse" placeholder="仓库名称"></el-input>
+                  </el-form-item>
           <el-form-item label="输入搜索：">
             <el-input style="width: 203px" v-model="listQuery.keyword" placeholder="商品名称"></el-input>
           </el-form-item>
@@ -35,18 +38,18 @@
       </div>
     </el-card>
     <el-card class="month-selection-container" shadow="never">
-      
+
       <span >上架时间</span>
       <el-date-picker
         class="month-picker"
-        v-model="selectedStartMonth"
+        v-model="listQuery.StartMonth"
         type="month"
         placeholder="选择开始月份">
       </el-date-picker>
 
       <el-date-picker
         class="month-picker"
-        v-model="selectedEndMonth"
+        v-model="listQuery.EndMonth"
         type="month"
         placeholder="选择截止月份">
       </el-date-picker>
@@ -61,7 +64,7 @@
     <br>
 
       <div class="grid-container">
-        
+
           <el-card class="grid-item" v-for="(item, index) in list" :key="item.id">
 
               <img style="width: 200px" :src="item.pic">
@@ -71,7 +74,7 @@
               <div class="item-stock">库存: {{ item.stock }}</div>
             </div>
           </el-card>
-        
+
         </div>
 
     <div class="table-container">
@@ -309,7 +312,7 @@ export default {
         value: 0,
         label: '未审核'
       }],
-      
+
     }
   },
   created() {   //"created" hook; at this point, methods are loaded, but dom not constructed. Best for data fetching.

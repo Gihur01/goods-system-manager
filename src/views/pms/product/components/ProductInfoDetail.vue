@@ -1,6 +1,9 @@
 <template>
   <div style="margin-top: 50px">
     <el-form :model="value" :rules="rules" ref="productInfoForm" label-width="120px" class="form-inner-container" size="small">
+      <el-form-item label="所在仓库：" prop="warehouse">
+        <el-input v-model="value.warehouse"></el-input>
+      </el-form-item>
       <el-form-item label="商品分类：" prop="productCategoryId">
         <el-cascader
           v-model="selectProductCateValue"

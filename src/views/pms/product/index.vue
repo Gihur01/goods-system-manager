@@ -30,23 +30,43 @@
               </el-option>
             </el-select>
           </el-form-item>
-
+          <el-form-item label="库存国家：">
+            <el-select v-model="listQuery.country" placeholder="请选择国家" clearable>
+              <el-option v-for="item in countryOptions" :key="item.value" :label="item.label" :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="库：">
+            <el-select v-model="listQuery.warehouse" placeholder="请选择库" clearable>
+              <el-option v-for="item in warehouseOptions" :key="item.value" :label="item.label" :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="库：">
+            <el-input style="width: 203px" v-model="listQuery.warehouse" placeholder="商品货号"></el-input>
+          </el-form-item>
         </el-form>
       </div>
     </el-card>
+
+    <el-card class="tag-selection-container" shadow="never">
+      <el-button type="primary">全部</el-button>
+      <el-button type="primary" plain v-for="item in list">{{ item.name }}</el-button>
+    </el-card>
+
     <el-card class="month-selection-container" shadow="never">
       
       <span >上架时间</span>
       <el-date-picker
         class="month-picker"
-        v-model="selectedStartMonth"
+        v-model="listQuery.StartMonth"
         type="month"
         placeholder="选择开始月份">
       </el-date-picker>
 
       <el-date-picker
         class="month-picker"
-        v-model="selectedEndMonth"
+        v-model="listQuery.EndMonth"
         type="month"
         placeholder="选择截止月份">
       </el-date-picker>
@@ -225,6 +245,7 @@ import {
 import { fetchList as fetchSkuStockList, update as updateSkuStockList } from '@/api/skuStock'
 import { fetchList as fetchProductAttrList } from '@/api/productAttr'
 import { fetchList as fetchBrandList } from '@/api/brand'
+import { fetchList as fetchWarehouseList } from '@/api/warehouse'
 import { fetchListWithChildren } from '@/api/productCate'
 
 const defaultListQuery = {
@@ -295,6 +316,8 @@ export default {
       multipleSelection: [],
       productCateOptions: [],
       brandOptions: [],
+      warehouseOptions: [],
+      countryOptions: [],
       publishStatusOptions: [{
         value: 1,
         label: '上架'
@@ -315,6 +338,7 @@ export default {
   created() {   //"created" hook; at this point, methods are loaded, but dom not constructed. Best for data fetching.
     this.getList();
     this.getBrandList();
+    this.getWarehouseList();
     this.getProductCateList();
   },
   watlch: {
@@ -359,6 +383,15 @@ export default {
         let brandList = response.data.list;
         for (let i = 0; i < brandList.length; i++) {
           this.brandOptions.push({ label: brandList[i].name, value: brandList[i].id });
+        }
+      });
+    },
+    getWarehouseList() {
+      fetchWarehouseList({ pageNum: 1, pageSize: 100 }).then(response => {
+        this.warehouseOptions = [];
+        let warehouseList = response.data.list;
+        for (let i = 0; i < warehouseList.length; i++) {
+          this.warehouseOptions.push({ label: warehouseList[i].name, value: warehouseList[i].id });
         }
       });
     },

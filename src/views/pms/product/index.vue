@@ -1,6 +1,36 @@
 <template> 
   <div class="app-container">
-
+    <el-card class="filter-container" shadow="never">
+      <div>
+        <i class="el-icon-search"></i>
+        <span>筛选搜索</span>
+        <el-button style="float: right" @click="handleSearchList()" type="primary" size="small">
+          查询结果
+        </el-button>
+        <el-button style="float: right;margin-right: 15px" @click="handleResetSearch()" size="small">
+          重置
+        </el-button>
+        <div style="margin-top: 15px">
+        <el-form :inline="true" :model="listQuery" size="small" label-width="100px">
+          <el-form-item label="库存国家：" >
+            <el-select v-model="listQuery.country" placeholder="请选择国家" class="select-country" clearable>
+              <el-option v-for="item in countryOptions" :key="item.value" :label="item.label" :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="所在仓库：" >
+            <el-select v-model="listQuery.warehouse" placeholder="请选择库" class="select-warehouse"  clearable>
+              <el-option v-for="item in warehouseOptions" :key="item.value" :label="item.label" :value="item.value">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="所在仓库（临时）：">
+            <el-input  v-model="listQuery.warehouse" placeholder="仓库名称"></el-input>
+          </el-form-item>
+        </el-form>
+        </div>
+      </div>
+    </el-card>
     <el-card class="filter-container" shadow="never">
       <div>
         <i class="el-icon-search"></i>
@@ -21,7 +51,7 @@
           <el-form-item label="商品货号：">
             <el-input style="width: 203px" v-model="listQuery.productSn" placeholder="商品货号"></el-input>
           </el-form-item>
-          <el-form-item label="商品分类：">
+          <!-- <el-form-item label="商品分类：">
             <el-cascader clearable v-model="selectProductCateValue" :options="productCateOptions">
             </el-cascader>
           </el-form-item>
@@ -30,31 +60,35 @@
               <el-option v-for="item in brandOptions" :key="item.value" :label="item.label" :value="item.value">
               </el-option>
             </el-select>
-          </el-form-item>
-          <el-form-item label="库存国家：">
-            <el-select v-model="listQuery.country" placeholder="请选择国家" clearable>
-              <el-option v-for="item in countryOptions" :key="item.value" :label="item.label" :value="item.value">
-              </el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item label="库：">
-            <el-select v-model="listQuery.warehouse" placeholder="请选择库" clearable>
-              <el-option v-for="item in warehouseOptions" :key="item.value" :label="item.label" :value="item.value">
-              </el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item label="所在仓库：">
-            <el-input style="width: 203px" v-model="listQuery.warehouse" placeholder="仓库名称"></el-input>
-          </el-form-item>
-          
+          </el-form-item> -->
         </el-form>
       </div>
     </el-card>
 
+<!-- 标签 -->
+    <div class="flex-filter-container">
     <el-card class="tag-selection-container" shadow="never">
+      <i class="el-icon-star-off"></i>
+      <span style="margin-right: 10px;">标签</span>
       <el-button type="primary">全部</el-button>
-      <el-button type="primary" plain v-for="item in list">{{ item.name }}</el-button>
+      <el-button type="primary" plain 
+        v-for="item in tagOptions" 
+        :key="item.id"
+        :class="{ active: tagStates[item.id] }"
+        @click="handleTagChange(item.id)"
+        
+        >{{ item.label,tagStates[item.id] }}</el-button>
     </el-card>
+
+    <el-card class="category-selection-container" shadow="never">
+      <el-select v-model="listQuery.brandId" placeholder="请选择品牌" clearable>
+        <el-option v-for="item in brandOptions" :key="item.value" :label="item.label" :value="item.value">
+        </el-option>
+      </el-select>
+      <el-cascader clearable v-model="selectProductCateValue" :options="productCateOptions">
+      </el-cascader>
+    </el-card>
+    </div>
 
     <el-card class="month-selection-container" shadow="never">
 
@@ -258,7 +292,8 @@ const defaultListQuery = {
   verifyStatus: null,
   productSn: null,
   productCategoryId: null,
-  brandId: null
+  brandId: null,
+  // tags:{0:0,1:0,2:0}
 };
 export default {
   name: "productList",
@@ -320,7 +355,17 @@ export default {
       brandOptions: [],
       warehouseOptions: [],
       countryOptions: [],
-      tagOptions:[],
+      tagOptions:[
+        {
+          label: "新品",
+          id:1,
+        },
+        {
+          label: "推荐",
+          id:2,
+        },
+      ],
+      tagStates: {},
       publishStatusOptions: [{
         value: 1,
         label: '上架'
@@ -339,10 +384,12 @@ export default {
     }
   },
   created() {   //"created" hook; at this point, methods are loaded, but dom not constructed. Best for data fetching.
+    
     this.getList();
     this.getBrandList();
     this.getWarehouseList();
     this.getProductCateList();
+    this.initPage();
   },
   watlch: {
     selectProductCateValue: function (newValue) {
@@ -413,6 +460,17 @@ export default {
         }
       });
     },
+
+    initPage(){
+      this.tagOptions.forEach(tag => {
+        this.$set(this.tagStates, tag.id, 0);
+      });
+    },
+
+    handleTagChange(id){
+      this.tagStates[id] = !this.tagStates[id];
+    },
+
     handleShowSkuEditDialog(index, row) {
       this.editSkuInfo.dialogVisible = true;
       this.editSkuInfo.productId = row.id;

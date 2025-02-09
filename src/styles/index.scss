@@ -193,3 +193,15 @@ a:hover {
 .item-stock{
   color: #DBAB22;
 }
+.select-country,.select-warehouse{
+  width: 100px;
+}
+.category-selection-container, .tag-selection-container{
+ width: 50%;
+}
+.flex-filter-container{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, 1000px);
+  
+  gap: 16px;
+}

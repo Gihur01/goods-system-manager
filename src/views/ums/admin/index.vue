@@ -114,6 +114,9 @@
         <el-form-item label="密码：">
           <el-input v-model="admin.password"  type="password" style="width: 250px"></el-input>
         </el-form-item>
+        <el-form-item label="国家：">
+          <el-input v-model="admin.country" style="width: 250px"></el-input>
+        </el-form-item>
         <el-form-item label="备注：">
           <el-input v-model="admin.note"
                     type="textarea"
@@ -167,6 +170,7 @@
     password: null,
     nickName: null,
     email: null,
+    country: null,
     note: null,
     status: 1
   };

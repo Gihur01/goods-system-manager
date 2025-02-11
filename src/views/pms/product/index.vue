@@ -67,27 +67,29 @@
 
 <!-- 标签 -->
     <div class="flex-filter-container">
-    <el-card class="tag-selection-container" shadow="never">
-      <i class="el-icon-star-off"></i>
-      <span style="margin-right: 10px;">标签</span>
-      <el-button type="primary">全部</el-button>
-      <el-button type="primary" plain 
-        v-for="item in tagOptions" 
-        :key="item.id"
-        :class="{ active: tagStates[item.id] }"
-        @click="handleTagChange(item.id)"
-        
-        >{{ item.label,tagStates[item.id] }}</el-button>
-    </el-card>
+      <el-card class="tag-selection-container" shadow="never">
+        <i class="el-icon-star-off"></i>
+        <span style="margin-right: 10px;">标签</span>
+        <el-button type="primary">全部</el-button>
+        <el-button type="primary" plain 
+          v-for="item in tagOptions" 
+          :key="item.id"
+          :class="{ active: tagStates[item.id] }"
+          @click="handleTagChange(item.id)"
+          
+          >{{ item.label,tagStates[item.id] }}</el-button>
+      </el-card>
 
-    <el-card class="category-selection-container" shadow="never">
-      <el-select v-model="listQuery.brandId" placeholder="请选择品牌" clearable>
-        <el-option v-for="item in brandOptions" :key="item.value" :label="item.label" :value="item.value">
-        </el-option>
-      </el-select>
-      <el-cascader clearable v-model="selectProductCateValue" :options="productCateOptions">
-      </el-cascader>
-    </el-card>
+      <el-card class="category-selection-container" shadow="never">
+        <span>品牌</span>
+        <el-select v-model="listQuery.brandId" placeholder="请选择品牌" clearable>
+          <el-option v-for="item in brandOptions" :key="item.value" :label="item.label" :value="item.value">
+          </el-option>
+        </el-select>
+        <span>产品分类</span>
+        <el-cascader  v-model="selectProductCateValue" :options="productCateOptions" clearable>
+        </el-cascader>
+      </el-card>
     </div>
 
     <el-card class="month-selection-container" shadow="never">

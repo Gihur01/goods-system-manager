@@ -2,14 +2,14 @@
   <div class="app-container">
     <el-card class="filter-container" shadow="never">
       <div>
-        <i class="el-icon-search"></i>
+        <!-- <i class="el-icon-search"></i>
         <span>筛选搜索</span>
         <el-button style="float: right" @click="handleSearchList()" type="primary" size="small">
           查询结果
         </el-button>
         <el-button style="float: right;margin-right: 15px" @click="handleResetSearch()" size="small">
           重置
-        </el-button>
+        </el-button> -->
         <div style="margin-top: 15px">
         <el-form :inline="true" :model="listQuery" size="small" label-width="100px">
           <el-form-item label="库存国家：" >
@@ -19,13 +19,10 @@
             </el-select>
           </el-form-item>
           <el-form-item label="所在仓库：" >
-            <el-select v-model="listQuery.warehouse" placeholder="请选择库" class="select-warehouse"  clearable>
+            <el-select v-model="listQuery.warehouse" change="handleSearchList()" placeholder="请选择库" class="select-warehouse"  clearable>
               <el-option v-for="item in warehouseOptions" :key="item.value" :label="item.label" :value="item.value">
               </el-option>
             </el-select>
-          </el-form-item>
-          <el-form-item label="所在仓库（临时）：">
-            <el-input  v-model="listQuery.warehouse" placeholder="仓库名称"></el-input>
           </el-form-item>
         </el-form>
         </div>
@@ -439,9 +436,10 @@ export default {
       });
     },
     getWarehouseList() {
-      fetchWarehouseList({ pageNum: 1, pageSize: 100 }).then(response => {
+      fetchWarehouseList().then(response => {
         this.warehouseOptions = [];
-        let warehouseList = response.data.list;
+        let warehouseList = response.data;
+        console.log(warehouseList)
         for (let i = 0; i < warehouseList.length; i++) {
           this.warehouseOptions.push({ label: warehouseList[i].name, value: warehouseList[i].id });
         }

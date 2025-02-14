@@ -19,7 +19,7 @@
             </el-select>
           </el-form-item>
           <el-form-item label="所在仓库：" >
-            <el-select v-model="listQuery.warehouse" change="handleSearchList()" placeholder="请选择库" class="select-warehouse"  clearable>
+            <el-select v-model="listQuery.warehouseId" @change="handleSearchList()" placeholder="请选择库" class="select-warehouse"  clearable>
               <el-option v-for="item in warehouseOptions" :key="item.value" :label="item.label" :value="item.value">
               </el-option>
             </el-select>
@@ -307,7 +307,8 @@ export default {
         productAttributeCategoryId: null,
         stockList: [],
         productAttr: [],
-        keyword: null
+        keyword: null,
+        warehouseId: null,
       },
       operates: [
         {

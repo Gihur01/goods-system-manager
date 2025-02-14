@@ -10,88 +10,60 @@
         <el-button style="float: right;margin-right: 15px" @click="handleResetSearch()" size="small">
           重置
         </el-button> -->
-        <div style="margin-top: 15px">
-        <el-form :inline="true" :model="listQuery" size="small" label-width="100px">
-          <el-form-item label="库存国家：" >
-            <el-select v-model="listQuery.country" placeholder="请选择国家" class="select-country" clearable>
+        <div style="">
+          <span class="filter-label" >国家：</span>
+            <el-select v-model="listQuery.country" placeholder="请选择国家" id="select-country" clearable>
               <el-option v-for="item in countryOptions" :key="item.value" :label="item.label" :value="item.value">
               </el-option>
             </el-select>
-          </el-form-item>
-          <el-form-item label="所在仓库：" >
-            <el-select v-model="listQuery.warehouseId" @change="handleSearchList()" placeholder="请选择库" class="select-warehouse"  clearable>
+        <!-- </div>
+        <div> -->
+          <span class="filter-label" >仓库：</span>
+            <el-select v-model="listQuery.warehouseId" @change="handleSearchList()" placeholder="请选择库" id="select-warehouse"  clearable>
               <el-option v-for="item in warehouseOptions" :key="item.value" :label="item.label" :value="item.value">
               </el-option>
             </el-select>
-          </el-form-item>
-        </el-form>
+
+          <span class="filter-label">分类：</span>
+          <el-cascader id="category-selector" v-model="selectProductCateValue" :options="productCateOptions" clearable>
+          </el-cascader>
         </div>
-      </div>
+        </div>
     </el-card>
     <el-card class="filter-container" shadow="never">
       <div>
-        <i class="el-icon-search"></i>
-        <span>筛选搜索</span>
-        <el-button style="float: right" @click="handleSearchList()" type="primary" size="small">
-          查询结果
+
+        <span class="filter-label" >搜索：</span>
+        <el-input style="width: 203px" v-model="listQuery.keyword" placeholder="商品名称"></el-input>
+        <el-button style="" @click="handleSearchList()" type="primary" size="small">
+          <i class="el-icon-search"></i>
         </el-button>
-        <el-button style="float: right;margin-right: 15px" @click="handleResetSearch()" size="small">
-          重置
-        </el-button>
-      </div>
-      <div style="margin-top: 15px">
-        <el-form :inline="true" :model="listQuery" size="small" label-width="140px">
-          
-          <el-form-item label="输入搜索：">
-            <el-input style="width: 203px" v-model="listQuery.keyword" placeholder="商品名称"></el-input>
-          </el-form-item>
-          <el-form-item label="商品货号：">
-            <el-input style="width: 203px" v-model="listQuery.productSn" placeholder="商品货号"></el-input>
-          </el-form-item>
-          <!-- <el-form-item label="商品分类：">
-            <el-cascader clearable v-model="selectProductCateValue" :options="productCateOptions">
-            </el-cascader>
-          </el-form-item>
-          <el-form-item label="商品品牌：">
-            <el-select v-model="listQuery.brandId" placeholder="请选择品牌" clearable>
-              <el-option v-for="item in brandOptions" :key="item.value" :label="item.label" :value="item.value">
-              </el-option>
-            </el-select>
-          </el-form-item> -->
-        </el-form>
       </div>
     </el-card>
 
+
+    <el-card class="category-selection-container" shadow="never">
+        
+        <!-- <div> -->
+          <span class="filter-label">品牌：</span>
+          <el-select id="brand-selector" v-model="listQuery.brandId" placeholder="请选择品牌" style="" clearable>
+            <el-option v-for="item in brandOptions" :key="item.value" :label="item.label" :value="item.value">
+            </el-option>
+          </el-select>
+        <!-- </div>
+        <div> -->
+          
+        <!-- </div> -->
+      </el-card>
+
+
+
 <!-- 标签 -->
     <div class="flex-filter-container">
-      <el-card class="tag-selection-container" shadow="never">
-        <i class="el-icon-star-off"></i>
-        <span style="margin-right: 10px;">标签</span>
-        <el-button type="primary">全部</el-button>
-        <el-button type="primary" plain 
-          v-for="item in tagOptions" 
-          :key="item.id"
-          :class="{ active: tagStates[item.id] }"
-          @click="handleTagChange(item.id)"
-          
-          >{{ item.label,tagStates[item.id] }}</el-button>
-      </el-card>
 
-      <el-card class="category-selection-container" shadow="never">
-        <span>品牌</span>
-        <el-select v-model="listQuery.brandId" placeholder="请选择品牌" clearable>
-          <el-option v-for="item in brandOptions" :key="item.value" :label="item.label" :value="item.value">
-          </el-option>
-        </el-select>
-        <span>产品分类</span>
-        <el-cascader  v-model="selectProductCateValue" :options="productCateOptions" clearable>
-        </el-cascader>
-      </el-card>
-    </div>
+      <el-card class="month-selection-container" shadow="never">
 
-    <el-card class="month-selection-container" shadow="never">
-
-      <span >上架时间</span>
+      <span >上架</span>
       <el-date-picker
         class="month-picker"
         v-model="listQuery.StartMonth"
@@ -105,21 +77,42 @@
         type="month"
         placeholder="选择截止月份">
       </el-date-picker>
-  </el-card>
-    <el-card class="operate-container" shadow="never">
+      </el-card>
+    
+
+      <el-card class="tag-selection-container" shadow="never">
+        <i class="el-icon-star-off"></i>
+        <span style="margin-right: 10px;">标签</span>
+        <el-button type="primary">全部</el-button>
+        <el-button type="primary" plain 
+          v-for="item in tagOptions" 
+          :key="item.id"
+          :class="{ active: tagStates[item.id] }"
+          @click="handleTagChange(item.id)"
+          
+          >{{ item.label,tagStates[item.id] }}</el-button>
+      </el-card>
+
+      
+    </div>
+
+
+
+
+    <!-- <el-card class="operate-container" shadow="never">
       <i class="el-icon-tickets"></i>
       <span>数据列表</span>
       <el-button class="btn-add" @click="handleAddProduct()" size="mini">
         添加
       </el-button>
-    </el-card>
+    </el-card> -->
     <br>
 
       <div class="grid-container">
 
           <el-card class="grid-item" v-for="(item, index) in list" :key="item.id">
 
-              <img style="width: 200px" :src="item.pic">
+              <img style="width: 100px; height: 100px;" :src="item.pic">
             <div class="product-title">{{ item.name }}</div>
             <div style="display: flex; justify-content: space-between;">
               <div class="item-price">￥{{ item.price }}</div>
@@ -129,7 +122,14 @@
 
         </div>
 
-    <div class="table-container">
+        <div class="pagination-container">
+      <el-pagination background @size-change="handleSizeChange" @current-change="handleCurrentChange"
+        layout="total, sizes,prev, pager, next,jumper" :page-size="listQuery.pageSize" :page-sizes="[5, 10, 15]"
+        :current-page.sync="listQuery.pageNum" :total="total">
+      </el-pagination>
+    </div>
+
+    <!-- <div class="table-container">
       <el-table ref="productTable" :data="list" style="width: 100%" @selection-change="handleSelectionChange"
         v-loading="listLoading" border>
         <el-table-column type="selection" width="60" align="center"></el-table-column>
@@ -261,12 +261,12 @@
             <el-input v-model="scope.row.lowStock"></el-input>
           </template>
         </el-table-column>
-      </el-table>
-      <span slot="footer" class="dialog-footer">
+      </el-table> -->
+      <!-- <span slot="footer" class="dialog-footer">
         <el-button @click="editSkuInfo.dialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="handleEditSkuConfirm">确 定</el-button>
       </span>
-    </el-dialog>
+    </el-dialog> -->
   </div>
 </template>
 <script>

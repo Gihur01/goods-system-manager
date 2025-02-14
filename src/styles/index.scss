@@ -15,6 +15,8 @@ html {
   box-sizing: border-box;
 }
 
+
+
 *,
 *:before,
 *:after {
@@ -59,9 +61,10 @@ a:hover {
 }
 
 //搜索栏样式
-.filter-container {
+.filter-container, .filter-form {
 
 }
+
 
 //操作栏样式
 .operate-container {
@@ -86,7 +89,6 @@ a:hover {
 //分页栏样式
 .pagination-container {
   display: inline-block;
-  float: right;
   margin-top: 20px;
 }
 
@@ -156,22 +158,28 @@ a:hover {
   color: #909399;
 }
 
+
 //the following are styles for the product page
 .grid-container{
   display: grid;
-  grid-template-columns: repeat(auto-fill, 250px);
+  grid-template-columns: repeat(auto-fill, 150px);
   gap: 16px;
   // width: 100%;
   
 }
 
+
+
 .grid-item{
   background: #e2e8f0;
-  // padding: 16px;
-  // border-radius: 8px;
-  width: 250px;
+  // width: 150px;
   text-align: left;
+  border: 1px solid #ccc;
+}
 
+.grid-item .grid-item:hover {
+  background: #e8f7f0;
+  border-color: #e8f7f0;
 }
 
 .product-title{
@@ -181,7 +189,7 @@ a:hover {
 }
 
 .month-picker{
-  max-width: 180px;
+  max-width: 150px;
 }
 
 .product-title{
@@ -194,9 +202,7 @@ a:hover {
 .item-stock{
   color: #DBAB22;
 }
-.select-country,.select-warehouse{
-  width: 100px;
-}
+
 
 
 //flexbox: the two filter boxes
@@ -207,19 +213,32 @@ a:hover {
   flex-wrap: wrap;
 }
 
+#select-country,#select-warehouse{
+  width: 150px;
+}
+
 .category-selection-container, .tag-selection-container{
   flex: 1;
-  padding: 20px;
+  // padding: 20px;
   // text-align: center;
-  border-radius: 8px;
+  // border-radius: 8px;
 }
 /* When screen width is less than 1000px, stack elements vertically */
 @media (max-width: 999px) {
   .flex-filter-container{
     flex-direction: column;
+    gap:0px;
   }
   .flex-filter-item {
     width: 100%;
   }
+  #brand-selector{
+    margin-bottom: 1em;
+  }
+}
+
+.filter-label{
+  display: inline-block; 
+  // width: 80px;
 }
 

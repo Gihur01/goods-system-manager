@@ -1,7 +1,7 @@
 <template> 
   <div class="app-container">
-    <el-card class="filter-container" shadow="never">
-      <div>
+    <el-card class="flex-filter-container" shadow="never">
+      <!-- <div> -->
         <!-- <i class="el-icon-search"></i>
         <span>筛选搜索</span>
         <el-button style="float: right" @click="handleSearchList()" type="primary" size="small">
@@ -10,31 +10,32 @@
         <el-button style="float: right;margin-right: 15px" @click="handleResetSearch()" size="small">
           重置
         </el-button> -->
-        <div style="">
+        <!-- <div class="input-group">
           <span class="filter-label" >国家：</span>
             <el-select v-model="listQuery.country" placeholder="请选择国家" id="select-country" clearable>
               <el-option v-for="item in countryOptions" :key="item.value" :label="item.label" :value="item.value">
               </el-option>
             </el-select>
-        <!-- </div>
-        <div> -->
+        </div> -->
+        <div class="input-group">
           <span class="filter-label" >仓库：</span>
             <el-select v-model="listQuery.warehouseId" @change="handleSearchList()" placeholder="请选择库" id="select-warehouse"  clearable>
               <el-option v-for="item in warehouseOptions" :key="item.value" :label="item.label" :value="item.value">
               </el-option>
             </el-select>
-
+        </div>
+        <div class="input-group">
           <span class="filter-label">分类：</span>
           <el-cascader id="category-selector" v-model="selectProductCateValue" :options="productCateOptions" clearable>
           </el-cascader>
         </div>
-        </div>
+      <!-- </div> -->
     </el-card>
     <el-card class="filter-container" shadow="never">
       <div>
 
         <span class="filter-label" >搜索：</span>
-        <el-input style="width: 203px" v-model="listQuery.keyword" placeholder="商品名称"></el-input>
+        <el-input style="width: 203px;" v-model="listQuery.keyword" placeholder="商品名称"></el-input>
         <el-button style="" @click="handleSearchList()" type="primary" size="small">
           <i class="el-icon-search"></i>
         </el-button>
@@ -109,24 +110,27 @@
     <br>
 
       <div class="grid-container">
-
-          <el-card class="grid-item" v-for="(item, index) in list" :key="item.id">
-
+          
+            <el-card class="grid-item" v-for="(item, index) in list" :key="item.id"
+              @click="handleShowProduct(item.id, item)">
+            
               <img style="width: 100px; height: 100px;" :src="item.pic">
-            <div class="product-title">{{ item.name }}</div>
-            <div style="display: flex; justify-content: space-between;">
-              <div class="item-price">￥{{ item.price }}</div>
-              <div class="item-stock">库存: {{ item.stock }}</div>
-            </div>
+              <div class="product-title">{{ item.name }}</div>
+              <div style="display: flex; justify-content: space-between;">
+                <div class="item-price">￥{{ item.price }}</div>
+                <div class="item-stock">库存: {{ item.stock }}</div>
+              </div>
+            
           </el-card>
 
-        </div>
+        
 
         <div class="pagination-container">
       <el-pagination background @size-change="handleSizeChange" @current-change="handleCurrentChange"
         layout="total, sizes,prev, pager, next,jumper" :page-size="listQuery.pageSize" :page-sizes="[5, 10, 15]"
         :current-page.sync="listQuery.pageNum" :total="total">
       </el-pagination>
+    </div>
     </div>
 
     <!-- <div class="table-container">
@@ -463,13 +467,15 @@ export default {
     },
 
     initPage(){
-      this.tagOptions.forEach(tag => {
-        this.$set(this.tagStates, tag.id, 0);
-      });
+      // this.tagOptions.forEach(tag => {
+      //   this.$set(this.tagStates, tag.id, 0);
+      // });
     },
 
     handleTagChange(id){
       this.tagStates[id] = !this.tagStates[id];
+      console.log(id);
+      console.log(tagStates.id);
     },
 
     handleShowSkuEditDialog(index, row) {

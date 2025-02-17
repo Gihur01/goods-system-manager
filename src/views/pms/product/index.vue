@@ -84,11 +84,15 @@
       <el-card class="tag-selection-container" shadow="never">
         <i class="el-icon-star-off"></i>
         <span style="margin-right: 10px;">标签</span>
-        <el-button type="primary">全部</el-button>
-        <el-button type="primary" plain 
+        <el-button 
+          class="tag-button" type="primary"
+          :plain="tagStates[0]"
+          @click="handleTagChange(0)"
+        >全部</el-button>
+        <el-button class="tag-button" type="primary" plain 
           v-for="item in tagOptions" 
           :key="item.id"
-          :class="{ active: tagStates[item.id] }"
+          :plain="tagStates[item.id]"
           @click="handleTagChange(item.id)"
           
           >{{ item.label,tagStates[item.id] }}</el-button>
@@ -359,6 +363,7 @@ export default {
       brandOptions: [],
       warehouseOptions: [],
       countryOptions: [],
+      tagStates: {},
       tagOptions:[
         {
           label: "新品",
@@ -369,7 +374,7 @@ export default {
           id:2,
         },
       ],
-      tagStates: {},
+      
       publishStatusOptions: [{
         value: 1,
         label: '上架'
@@ -467,15 +472,15 @@ export default {
     },
 
     initPage(){
-      // this.tagOptions.forEach(tag => {
-      //   this.$set(this.tagStates, tag.id, 0);
-      // });
+      this.$set(this.tagStates, 0, false);
+      this.tagOptions.forEach(tag => {
+        this.$set(this.tagStates, tag.id, false);
+      });
     },
 
     handleTagChange(id){
       this.tagStates[id] = !this.tagStates[id];
-      console.log(id);
-      console.log(tagStates.id);
+      
     },
 
     handleShowSkuEditDialog(index, row) {

@@ -144,6 +144,13 @@ export const asyncRouterMap = [
         component: () => import('@/views/oms/order/index'),
         meta: {title: '订单列表', icon: 'product-list'}
       },
+      //This was an attempt to add a new page for retailers. Unneeded for now.
+      // {   
+      //   path: 'orderRetail',
+      //   name: 'orderRetail',
+      //   component: () => import('@/views/oms/order/orderRetail'),
+      //   meta: {title: '订单列表2', icon: 'product-list'}
+      // },
       {
         path: 'orderDetail',
         name: 'orderDetail',

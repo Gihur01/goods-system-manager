@@ -66,6 +66,22 @@
       <i class="el-icon-tickets"></i>
       <span>数据列表</span>
     </el-card>
+
+
+<!-- collapse list -->
+    <el-collapse v-model="expandedOrders" @change="handleToggleOrder">
+      <el-collapse-item 
+        v-for="(item, index) in list"
+        :key="index" 
+        :name="index">
+
+        <template slot="title">
+          {{item.orderSn}}
+        </template>
+   
+      </el-collapse-item>
+    </el-collapse>
+
     <div class="table-container">
       <el-table ref="orderTable"
                 :data="list"
@@ -200,6 +216,7 @@
         total: null,
         operateType: null,
         multipleSelection: [],
+        expandedOrders:[], //store order expanded state
         closeOrder:{
           dialogVisible:false,
           content:null,
@@ -305,6 +322,9 @@
       },
     },
     methods: {
+      handleToggleOrder(event) {
+        
+      },
       handleResetSearch() {
         this.listQuery = Object.assign({}, defaultListQuery);
       },

@@ -113,7 +113,7 @@
     </el-card> -->
     <br>
 
-      <div class="grid-container">
+      <div class="grid-container" id="product-grid">
           
             <el-card class="grid-item" v-for="(item, index) in list" :key="item.id"
               @click="handleShowProduct(item.id, item)">

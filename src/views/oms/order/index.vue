@@ -81,6 +81,17 @@
    
       </el-collapse-item>
     </el-collapse>
+    <div class="grid-container" id="order-grid">
+      <Collapsible 
+          v-for="(item, index) in list"
+          :key="index"
+          :id="index" 
+          :title="item.orderSn"
+          :expanded="expandedOrders[index]"
+          @click="handleToggleOrder">
+        {{ item }}
+      </Collapsible>
+  </div>
 
     <div class="table-container">
       <el-table ref="orderTable"
@@ -195,6 +206,7 @@
   import {fetchList,closeOrder,deleteOrder} from '@/api/order'
   import {formatDate} from '@/utils/date';
   import LogisticsDialog from '@/views/oms/order/components/logisticsDialog';
+  import Collapsible from '@/components/Collapsible2';
   const defaultListQuery = {
     pageNum: 1,
     pageSize: 10,
@@ -207,7 +219,7 @@
   };
   export default {
     name: "orderList",
-    components:{LogisticsDialog},
+    components:{LogisticsDialog,Collapsible},
     data() {
       return {
         listQuery: Object.assign({}, defaultListQuery),
@@ -217,6 +229,9 @@
         operateType: null,
         multipleSelection: [],
         expandedOrders:[], //store order expanded state
+        requestedOrders: [], //store all order ids that have been opened 
+        itemList:[], //store list of all items
+        expandedState:[],
         closeOrder:{
           dialogVisible:false,
           content:null,
@@ -283,6 +298,8 @@
     },
     created() {
       this.getList();
+      this.initPage();
+      
     },
     filters: {
       formatCreateTime(time) {
@@ -322,8 +339,27 @@
       },
     },
     methods: {
-      handleToggleOrder(event) {
-        
+      initPage(){
+        for(let i=0;i<this.listQuery.pageSize;i++){
+          this.$set(this.expandedOrders,i,0);
+          console.log(this.expandedOrders);
+        };
+      },
+      handleToggleOrder(id) {
+        console.log(id);
+        // let newestId=this.expandedOrders[-1];
+        // if(this.requestedOrders.includes(newest)){
+        //   //request from cache
+        // }
+        // else{
+          
+        // }
+        if(this.expandedOrders[id] == 1)
+          this.$set(this.expandedOrders,id,0);
+        else
+          this.$set(this.expandedOrders,id,1);
+        console.log(this.expandedOrders);
+
       },
       handleResetSearch() {
         this.listQuery = Object.assign({}, defaultListQuery);

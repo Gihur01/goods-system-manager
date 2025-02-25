@@ -69,19 +69,10 @@
     </el-card>
 
 
+    <el-button>
+      备货完毕
+    </el-button>
 <!-- collapse list -->
-    <!-- <el-collapse v-model="expandedOrders" @change="handleToggleOrder">
-      <el-collapse-item 
-        v-for="(item, index) in list"
-        :key="index" 
-        :name="index">
-
-        <template slot="title">
-          {{item.orderSn}}
-        </template>
-   
-      </el-collapse-item>
-    </el-collapse> -->
 
     <div class="grid-container" id="order-grid">
       <Collapsible 
@@ -90,12 +81,13 @@
           :id="item.id" 
           :expanded="expandedOrders[item.id]"
           @click="handleToggleOrder">
+
           <template slot="title">
             <span>{{ item.orderSn }}</span>
-            <el-checkbox></el-checkbox>
+            <el-checkbox v-model="checkBoxValues[item.id]"></el-checkbox>
           </template>
-        <!-- {{ list.orderSn }} -->
-          <!-- <div>{{ itemList[item.id] }}</div> -->
+
+          <!-- list of items in this order(package) -->
           <div class="grid-container" id="order-item-grid">
             <div
               v-for="items in itemList[item.id]"
@@ -245,9 +237,8 @@
         clickedId: null, //the id that the user just clicked
         multipleSelection: [],
         expandedOrders:{}, //store order expanded state
-        requestedOrders: [], //store all order ids that have been opened 
         itemList:{}, //store list of all items
-        expandedState:[],
+        checkBoxValues: {},
         closeOrder:{
           dialogVisible:false,
           content:null,
@@ -358,6 +349,7 @@
       initPage(){
         for(let item of this.list){
           this.$set(this.expandedOrders,item.id,0);
+          this.$set(this.checkBoxValues,item.id,0);
           // console.log(this.expandedOrders);
         };
       },
@@ -381,11 +373,15 @@
           getOrderDetail(id).then(response => {
           this.$set(this.itemList,id,response.data.orderItemList);
           });
-          console.log(this.itemList);
+          // console.log(this.itemList);
         };
+      },
 
+      handleCheckBox(id){
 
       },
+
+
       handleResetSearch() {
         this.listQuery = Object.assign({}, defaultListQuery);
       },

@@ -26,7 +26,7 @@
         </div>
         <div class="input-group">
           <span class="filter-label">分类：</span>
-          <el-cascader id="category-selector" v-model="selectProductCateValue" :options="productCateOptions" clearable>
+          <el-cascader id="category-selector" v-model="selectProductCateValue" :options="productCateOptions" @change="handleSearchList()" clearable>
           </el-cascader>
         </div>
       <!-- </div> -->
@@ -36,7 +36,7 @@
 
         <span class="filter-label" >搜索：</span>
         <el-input style="width: 203px;" v-model="listQuery.keyword" placeholder="商品名称"></el-input>
-        <el-button style="" @click="handleSearchList()" type="primary" size="small">
+        <el-button @click="handleSearchList()" type="primary" size="small">
           <i class="el-icon-search"></i>
         </el-button>
       </div>
@@ -47,7 +47,7 @@
         
         <!-- <div> -->
           <span class="filter-label">品牌：</span>
-          <el-select id="brand-selector" v-model="listQuery.brandId" placeholder="请选择品牌" style="" clearable>
+          <el-select id="brand-selector" v-model="listQuery.brandId" placeholder="请选择品牌" @change="handleSearchList()" clearable>
             <el-option v-for="item in brandOptions" :key="item.value" :label="item.label" :value="item.value">
             </el-option>
           </el-select>
@@ -78,6 +78,9 @@
         type="month"
         placeholder="选择截止月份">
       </el-date-picker>
+      <el-button @click="handleSearchList()" type="primary" size="small">
+          <i class="el-icon-search"></i>
+        </el-button>
       </el-card>
     
 

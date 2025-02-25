@@ -4,16 +4,20 @@
         class="header"
         @click="$emit('click', id)"
       >
-        {{ title }}
+      <slot name="title">
+        <!-- Fallback content if no title slot is provided -->
+        <span class="default-title">{{ title }}</span>
+      </slot>
       </div>
       <div
         ref="content"
         class="collapsible-content"
         :style="contentStyle"
       >
-        <div class="content">
-          <slot></slot>
-        </div>
+      <div class="content">
+        <!-- Main content slot -->
+        <slot></slot>
+      </div>
       </div>
     </div>
   </template>
@@ -28,11 +32,11 @@
       },
       title: {
         // type: String,
-        required: true
+        // required: true
       },
       expanded: {
         // type: Number,
-        validator: value => [0, 1].includes(value),
+        // validator: value => [0, 1].includes(value),
         required: true
       }
     },

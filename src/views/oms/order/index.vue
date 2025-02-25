@@ -1,4 +1,4 @@
-<template> 
+<template>
   <div class="app-container">
     <el-card class="filter-container" shadow="never">
       <div>
@@ -20,7 +20,8 @@
       </div>
       <div style="margin-top: 15px">
         <el-form :inline="true" :model="listQuery" size="small" label-width="140px">
-          <el-form-item label="搜索订单编号：">
+          <el-form-item label="搜索包裹编号：">
+<!-- TODO: change this to packageSn -->
             <el-input v-model="listQuery.orderSn" class="input-width" placeholder="订单编号"></el-input>
           </el-form-item>
           <el-form-item label="提交时间：">
@@ -69,7 +70,7 @@
 
 
 <!-- collapse list -->
-    <el-collapse v-model="expandedOrders" @change="handleToggleOrder">
+    <!-- <el-collapse v-model="expandedOrders" @change="handleToggleOrder">
       <el-collapse-item 
         v-for="(item, index) in list"
         :key="index" 
@@ -80,16 +81,30 @@
         </template>
    
       </el-collapse-item>
-    </el-collapse>
+    </el-collapse> -->
+
     <div class="grid-container" id="order-grid">
       <Collapsible 
           v-for="(item, index) in list"
           :key="index"
-          :id="index" 
-          :title="item.orderSn"
-          :expanded="expandedOrders[index]"
+          :id="item.id" 
+          :expanded="expandedOrders[item.id]"
           @click="handleToggleOrder">
-        {{ item }}
+          <template slot="title">
+            <span>{{ item.orderSn }}</span>
+            <el-checkbox></el-checkbox>
+          </template>
+        <!-- {{ list.orderSn }} -->
+          <!-- <div>{{ itemList[item.id] }}</div> -->
+          <div class="grid-container" id="order-item-grid">
+            <div
+              v-for="items in itemList[item.id]"
+            >
+            {{ items.productSn }}
+          
+          </div>
+
+          </div>
       </Collapsible>
   </div>
 
@@ -124,7 +139,7 @@
         <el-table-column label="订单状态" width="120" align="center">
           <template slot-scope="scope">{{scope.row.status | formatStatus}}</template>
         </el-table-column>
-        <!-- <el-table-column label="操作" width="200" align="center">
+        <el-table-column label="操作" width="200" align="center">
           <template slot-scope="scope">
             <el-button
               size="mini"
@@ -148,7 +163,7 @@
               @click="handleDeleteOrder(scope.$index, scope.row)"
               v-show="scope.row.status===4">删除订单</el-button>
           </template>
-        </el-table-column> -->
+        </el-table-column>
       </el-table>
     </div>
     <div class="batch-operate-container">
@@ -203,7 +218,7 @@
   </div>
 </template>
 <script>
-  import {fetchList,closeOrder,deleteOrder} from '@/api/order'
+  import {fetchList,closeOrder,deleteOrder,getOrderDetail} from '@/api/order'
   import {formatDate} from '@/utils/date';
   import LogisticsDialog from '@/views/oms/order/components/logisticsDialog';
   import Collapsible from '@/components/Collapsible2';
@@ -227,10 +242,11 @@
         list: null,
         total: null,
         operateType: null,
+        clickedId: null, //the id that the user just clicked
         multipleSelection: [],
-        expandedOrders:[], //store order expanded state
+        expandedOrders:{}, //store order expanded state
         requestedOrders: [], //store all order ids that have been opened 
-        itemList:[], //store list of all items
+        itemList:{}, //store list of all items
         expandedState:[],
         closeOrder:{
           dialogVisible:false,
@@ -340,25 +356,34 @@
     },
     methods: {
       initPage(){
-        for(let i=0;i<this.listQuery.pageSize;i++){
-          this.$set(this.expandedOrders,i,0);
-          console.log(this.expandedOrders);
+        for(let item of this.list){
+          this.$set(this.expandedOrders,item.id,0);
+          // console.log(this.expandedOrders);
         };
       },
       handleToggleOrder(id) {
         console.log(id);
-        // let newestId=this.expandedOrders[-1];
-        // if(this.requestedOrders.includes(newest)){
-        //   //request from cache
-        // }
-        // else{
-          
-        // }
-        if(this.expandedOrders[id] == 1)
+
+        if(this.expandedOrders[id] == 1){
           this.$set(this.expandedOrders,id,0);
-        else
+          // console.log("collapsed");
+        }
+        else{
           this.$set(this.expandedOrders,id,1);
-        console.log(this.expandedOrders);
+          // console.log("expanded");
+        }
+
+        if(id in this.itemList){
+          //if the list of items was already requested for this id
+          //...
+        }
+        else{
+          getOrderDetail(id).then(response => {
+          this.$set(this.itemList,id,response.data.orderItemList);
+          });
+          console.log(this.itemList);
+        };
+
 
       },
       handleResetSearch() {

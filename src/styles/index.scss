@@ -171,10 +171,13 @@ a:hover {
 }
 #order-grid{
   // grid-template-columns: repeat(auto-fill, 400px);
-  display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1rem;
   // align-items: start; /* Crucial - prevents row stretching */
+}
+#order-item-grid{
+  grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+  gap: 1rem;
 }
 
 

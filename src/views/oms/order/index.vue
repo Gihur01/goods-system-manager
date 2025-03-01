@@ -88,11 +88,12 @@
           </template>
 
           <!-- list of items in this order(package) -->
-          <div class="grid-container" id="order-item-grid">
-            <div
-              v-for="items in itemList[item.id]"
-            >
-            {{ items.productSn }}
+          <div class="grid-container" id="order-item-grid" >
+            <div  class="product-container" v-for="product in itemList[item.id]">
+              <div class="product-text" id="product-title">{{ product.productName }}</div>
+              <div class="product-text" id="product-sn">{{ product.productSn }}</div>
+              <div class="product-text" id="product-quantity">{{ product.productQuantity }}</div>
+            
           
           </div>
 

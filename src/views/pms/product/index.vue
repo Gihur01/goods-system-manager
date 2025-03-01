@@ -122,7 +122,7 @@
               @click="handleShowProduct(item.id, item)">
             
               <img style="width: 100px; height: 100px;" :src="item.pic">
-              <div class="product-title">{{ item.name }}</div>
+              <div class="product-text" id="item-title">{{ item.name }}</div>
               <div style="display: flex; justify-content: space-between;">
                 <div class="item-price">￥{{ item.price }}</div>
                 <div class="item-stock">库存: {{ item.stock }}</div>
@@ -699,4 +699,10 @@ export default {
   }
 }
 </script>
-<style></style>
+
+<style scoped>
+#product-sn{
+
+}
+
+</style>

@@ -705,4 +705,7 @@ export default {
 
 }
 
+#product-quantity{
+  padding-left: 5px;
+}
 </style>

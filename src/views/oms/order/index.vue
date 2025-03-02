@@ -22,7 +22,7 @@
         <el-form :inline="true" :model="listQuery" size="small" label-width="140px">
           <el-form-item label="搜索包裹编号：">
 <!-- TODO: change this to packageSn -->
-            <el-input v-model="listQuery.orderSn" class="input-width" placeholder="订单编号"></el-input>
+            <el-input v-model="listQuery.parcelID" class="input-width" placeholder="订单编号"></el-input>
           </el-form-item>
           <el-form-item label="提交时间：">
             <el-date-picker
@@ -63,13 +63,13 @@
         </el-form>
       </div>
     </el-card>
-    <el-card class="operate-container" shadow="never">
+    <!-- <el-card class="operate-container" shadow="never">
       <i class="el-icon-tickets"></i>
       <span>数据列表</span>
-    </el-card>
+    </el-card> -->
 
 
-    <el-button>
+    <el-button @click="handleUpdatePreparedState" style="margin: 10px;">
       备货完毕
     </el-button>
 <!-- collapse list -->
@@ -355,7 +355,7 @@
         };
       },
       handleToggleOrder(id) {
-        console.log(id);
+        // console.log(id);
 
         if(this.expandedOrders[id] == 1){
           this.$set(this.expandedOrders,id,0);
@@ -378,9 +378,11 @@
         };
       },
 
-      handleCheckBox(id){
-
+      //批量备货
+      handleUpdatePreparedState(){
+        
       },
+
 
 
       handleResetSearch() {

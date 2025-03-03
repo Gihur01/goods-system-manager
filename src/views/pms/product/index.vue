@@ -96,9 +96,8 @@
           v-for="item in tagOptions" 
           :key="item.id"
           :plain="tagStates[item.id]"
-          @click="handleTagChange(item.id)"
-          
-          >{{ item.label,tagStates[item.id] }}</el-button>
+          @click="handleTagChange(item.id)">
+          {{ item.label,tagStates[item.id] }}</el-button>
       </el-card>
 
       

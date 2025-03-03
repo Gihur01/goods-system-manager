@@ -19,12 +19,7 @@
         </el-button> -->
       </div>
       <div style="margin-top: 15px">
-        
         <el-form :inline="true" :model="listQuery" size="small" label-width="140px">
-          <el-form-item label="仓库选择:">
-            <el-input v-model="listQuery.parcelID" class="input-width" placeholder="订单编号"></el-input>
-          </el-form-item>
-
           <el-form-item label="搜索包裹编号：">
 <!-- TODO: change this to packageSn -->
             <el-input v-model="listQuery.parcelID" class="input-width" placeholder="订单编号"></el-input>
@@ -91,13 +86,13 @@
       <Collapsible 
           v-for="(item, index) in list"
           :key="index"
-          :id="item.parcelSn" 
-          :expanded="expandedOrders[item.parcelSn]"
+          :id="item.id" 
+          :expanded="expandedOrders[item.id]"
           @click="handleToggleOrder">
 
           <template slot="title">
-            <span>{{ item.parcelSn }}</span>
-            <el-checkbox v-model="checkBoxValues[item.parcelSn]"></el-checkbox>
+            <span>{{ item.orderSn }}</span>
+            <el-checkbox v-model="checkBoxValues[item.id]"></el-checkbox>
           </template>
 
           <!-- list of items in this order(package) -->
@@ -224,28 +219,19 @@
   </div>
 </template>
 <script>
-  import {fetchParcelList, fetchItemList,closeOrder,deleteOrder,getOrderDetail} from '@/api/order'
+  import {fetchParcelList,closeOrder,deleteOrder,getOrderDetail} from '@/api/order'
   import {formatDate} from '@/utils/date';
   import LogisticsDialog from '@/views/oms/order/components/logisticsDialog';
   import Collapsible from '@/components/Collapsible2';
   const defaultListQuery = {
     pageNum: 1,
     pageSize: 10,
-    parcelID: null,
-    parcelStatus: null,
-    warehosueId: null,
-  };
-  const defaultItemListQuery ={
-    // id: null,
-    location: null, //the country 
-    // orderId: null,
-    // orderSn: null,
-    parcelId:null,
-    // productId:null,
-    productName:null,
-    warehosueId:null,
-    pageNum: 1,
-    pageSize: 50,
+    orderSn: null,
+    receiverKeyword: null,
+    status: null,
+    orderType: null,
+    sourceType: null,
+    createTime: null,
   };
   export default {
     name: "orderList",
@@ -253,19 +239,17 @@
     data() {
       return {
         listQuery: Object.assign({}, defaultListQuery),
-        itemListQuery: Object.assign({}, defaultItemListQuery),
         listLoading: true,
-        list: [],
+        list: null,
         total: null,
         operateType: null,
         clickedId: null, //the id that the user just clicked
-        multipleSelection: [], //legacy multi select array for the data list
+        multipleSelection: [],
         expandedOrders:{}, //store order expanded state
         itemList:{}, //store list of all items (in the parcels)
         checkBoxValues: {}, //stores the values of checkboxes.
         checkBoxValuesCompare:{}, //Stores the state of checkboxes after preparation button is pressed.
-        
-        
+
         //this stores the states of the checkboxes and collapsibles.
         //Mainly whether they are all toggled.
         componentStates:{
@@ -337,7 +321,7 @@
       }
     },
     created() {
-      
+      this.getList();
       this.initPage();
       
     },
@@ -380,18 +364,12 @@
     },
     methods: {
       initPage(){
-        this.getList();
-
         for(let item of this.list){
-          this.expandedOrders[item.id]=false;
-          this.checkBoxValues[item.id]=false;
-          // this.$set(this.expandedOrders,item.id,false);
-          // this.$set(this.checkBoxValues,item.id,false);
+          this.$set(this.expandedOrders,item.id,false);
+          this.$set(this.checkBoxValues,item.id,false);
         };
       },
-
       handleToggleOrder(id) {
-        console.log(id);
         if(this.expandedOrders[id] == true){
           this.$set(this.expandedOrders,id,false);
         }
@@ -404,14 +382,10 @@
           //...
         }
         else{
-          this.itemListQuery.parcelId=id;
-          console.log(this.itemListQuery);
-
-          //this fails to send the query to backend! Why?
-          fetchItemList(this.itemListQuery).then(response => {
-          this.$set(this.itemList,id,response.data.list);
+          getOrderDetail(id).then(response => {
+          this.$set(this.itemList,id,response.data.orderItemList);
           });
-          console.log(this.itemList);
+          
         };
 
         //TODO: add code to put the list into localstorage (to be considered)

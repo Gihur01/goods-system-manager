@@ -1,11 +1,28 @@
 import request from '@/utils/request'
-export function fetchList(params) {
+export function fetchOrderList(params) {
   return request({
     url:'/order/list',
     method:'get',
     params:params
   })
 }
+
+export function fetchParcelList(params) {
+  return request({
+    url:'/order/listParcel',
+    method:'get',
+    params:params
+  })
+}
+
+export function fetchItemList(params) {
+  return request({
+    url:'/order/listItem',
+    method:'get',
+    params:params
+  })
+}
+
 
 export function closeOrder(params) {
   return request({

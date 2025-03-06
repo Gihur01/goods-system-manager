@@ -7,13 +7,7 @@ export function fetchOrderList(params) {
   })
 }
 
-export function fetchParcelList(params) {
-  return request({
-    url:'/order/listParcel',
-    method:'get',
-    params:params
-  })
-}
+
 
 export function fetchItemList(params) {
   return request({

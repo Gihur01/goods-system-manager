@@ -2,8 +2,9 @@
     <div class="collapsible">
       <div 
         class="header"
-        @click="$emit('click', id)"
+        @click="$emit('click',id)" 
       >
+      <!-- key is the id of current component, id may be used as external id -->
       <slot name="title">
         <!-- Fallback content if no title slot is provided -->
         <span class="default-title">{{ title }}</span>

@@ -22,12 +22,14 @@
         
         <el-form :inline="true" :model="listQuery" size="small" label-width="140px">
           <el-form-item label="仓库选择:">
-            <el-input v-model="listQuery.parcelID" class="input-width" placeholder="订单编号"></el-input>
+            <el-select v-model="listQuery.warehouseId" @change="handleSearchList()" placeholder="请选择库" id="select-warehouse"  clearable>
+              <el-option v-for="item in warehouseOptions" :key="item.value" :label="item.label" :value="item.value">
+              </el-option>
+            </el-select>
           </el-form-item>
-
+<!-- this needs to be added in api -->
           <el-form-item label="搜索包裹编号：">
-<!-- TODO: change this to packageSn -->
-            <el-input v-model="listQuery.parcelID" class="input-width" placeholder="订单编号"></el-input>
+            <el-input v-model="listQuery.parcelID" class="input-width" placeholder="包裹单编号"></el-input>
           </el-form-item>
           <el-form-item label="提交时间：">
             <el-date-picker
@@ -35,17 +37,20 @@
               v-model="listQuery.createTime"
               value-format="yyyy-MM-dd"
               type="date"
-              placeholder="请选择时间">
+              placeholder="请选择时间"
+              >
             </el-date-picker>
           </el-form-item>
-          <el-form-item label="订单状态：">
-            <el-select v-model="listQuery.status" class="input-width" placeholder="全部" clearable>
-              <el-option v-for="item in statusOptions"
-                         :key="item.value"
-                         :label="item.label"
-                         :value="item.value">
-              </el-option>
-            </el-select>
+
+          <el-form-item>
+            <el-checkbox-group v-model="statusTagSelectionValues" @change="handleSearchList()" size="medium">
+              <el-checkbox-button  
+                v-for="item in statusOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"></el-checkbox-button>
+            </el-checkbox-group>
+
           </el-form-item>
           <!-- <el-form-item label="订单分类：">
             <el-select v-model="listQuery.orderType" class="input-width" placeholder="全部" clearable>
@@ -74,11 +79,23 @@
     </el-card> -->
 
     <el-card shadow="none">
-      <el-button @click="handleUpdatePreparedState" style="margin: 10px;">
-      备货完毕
-    </el-button>
+<!-- 这个我需要修改！ -->
+      <span>状态设置</span>
+      <el-select v-model="listQuery.status"  class="input-width" placeholder="全部" clearable>
+        <el-option v-for="item in statusOptions"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value">
+        </el-option>
+      </el-select>
+      <el-button @click="handleUpdateParcelState" style="margin: 10px;">
+      提交
+      </el-button>
       <el-button @click="handleCheckAll" style="margin: 10px;">
       全选
+      </el-button>
+      <el-button @click="handlePrintParcel" style="margin: 10px;">
+        打印
       </el-button>
       <el-button  @click="handleExpandAll" style="margin: 10px; float: right;">
       全部展开/收起
@@ -89,14 +106,14 @@
 
     <div class="grid-container" id="order-grid">
       <Collapsible 
-          v-for="(item, index) in list"
+          v-for="(item,index) in list"
           :key="index"
-          :id="item.parcelSn" 
-          :expanded="expandedOrders[item.parcelSn]"
+          :id="item.id" 
+          :expanded="expandedOrders[item.id]"
           @click="handleToggleOrder">
 
           <template slot="title">
-            <span>{{ item.parcelSn }}</span>
+            <span>{{ item.parcelSn==null? "无包裹单号":item.parcelSn }}</span>
             <el-checkbox v-model="checkBoxValues[item.parcelSn]"></el-checkbox>
           </template>
 
@@ -112,9 +129,9 @@
 
           </div>
       </Collapsible>
-  </div>
+   </div>
 
-    <div class="table-container">
+<!--    <div class="table-container">
       <el-table ref="orderTable"
                 :data="list"
                 style="width: 100%;"
@@ -130,18 +147,10 @@
         <el-table-column label="提交时间" width="180" align="center">
           <template slot-scope="scope">{{scope.row.createTime | formatCreateTime}}</template>
         </el-table-column>
-        <!-- <el-table-column label="用户账号" align="center">
-          <template slot-scope="scope">{{scope.row.memberUsername}}</template>
-        </el-table-column> -->
+
         <el-table-column label="订单金额" width="120" align="center">
           <template slot-scope="scope">￥{{scope.row.totalAmount}}</template>
         </el-table-column>
-        <!-- <el-table-column label="支付方式" width="120" align="center">
-          <template slot-scope="scope">{{scope.row.payType | formatPayType}}</template>
-        </el-table-column>
-        <el-table-column label="订单来源" width="120" align="center">
-          <template slot-scope="scope">{{scope.row.sourceType | formatSourceType}}</template>
-        </el-table-column> -->
         <el-table-column label="订单状态" width="120" align="center">
           <template slot-scope="scope">{{scope.row.status | formatStatus}}</template>
         </el-table-column>
@@ -192,18 +201,7 @@
         确定
       </el-button>
     </div>
-    <div class="pagination-container">
-      <el-pagination
-        background
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-        layout="total, sizes,prev, pager, next,jumper"
-        :current-page.sync="listQuery.pageNum"
-        :page-size="listQuery.pageSize"
-        :page-sizes="[5,10,15]"
-        :total="total">
-      </el-pagination>
-    </div>
+   
     <el-dialog
       title="关闭订单"
       :visible.sync="closeOrder.dialogVisible" width="30%">
@@ -221,10 +219,25 @@
       </span>
     </el-dialog>
     <logistics-dialog v-model="logisticsDialogVisible"></logistics-dialog>
+  </div> -->
+  <div class="pagination-container">
+      <el-pagination
+        background
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        layout="total, sizes,prev, pager, next,jumper"
+        :current-page.sync="listQuery.pageNum"
+        :page-size="listQuery.pageSize"
+        :page-sizes="[5,10,15]"
+        :total="total">
+      </el-pagination>
+    </div>
   </div>
 </template>
 <script>
-  import {fetchParcelList, fetchItemList,closeOrder,deleteOrder,getOrderDetail} from '@/api/order'
+  import {fetchItemList,closeOrder,deleteOrder,getOrderDetail} from '@/api/order'
+  import {fetchParcelList, printParcel} from '@/api/parcel'
+  import {fetchList as fetchWarehouseList } from '@/api/warehouse'
   import {formatDate} from '@/utils/date';
   import LogisticsDialog from '@/views/oms/order/components/logisticsDialog';
   import Collapsible from '@/components/Collapsible2';
@@ -233,7 +246,7 @@
     pageSize: 10,
     parcelID: null,
     parcelStatus: null,
-    warehosueId: null,
+    warehouseId: null,
   };
   const defaultItemListQuery ={
     // id: null,
@@ -243,7 +256,7 @@
     parcelId:null,
     // productId:null,
     productName:null,
-    warehosueId:null,
+    warehouseId:null,
     pageNum: 1,
     pageSize: 50,
   };
@@ -264,7 +277,11 @@
         itemList:{}, //store list of all items (in the parcels)
         checkBoxValues: {}, //stores the values of checkboxes.
         checkBoxValuesCompare:{}, //Stores the state of checkboxes after preparation button is pressed.
-        
+        statusTagSelectionValues:[], //Stores value of the status tags
+        warehouseOptions:[],
+        printedList:[], //list of parcels already printed
+        //logic: selected - printed = to be printed
+
         
         //this stores the states of the checkboxes and collapsibles.
         //Mainly whether they are all toggled.
@@ -381,7 +398,9 @@
     methods: {
       initPage(){
         this.getList();
+        this.getWarehouseList();
 
+        //init the checkbox states and expanded states
         for(let item of this.list){
           this.expandedOrders[item.id]=false;
           this.checkBoxValues[item.id]=false;
@@ -391,6 +410,7 @@
       },
 
       handleToggleOrder(id) {
+        
         console.log(id);
         if(this.expandedOrders[id] == true){
           this.$set(this.expandedOrders,id,false);
@@ -417,8 +437,12 @@
         //TODO: add code to put the list into localstorage (to be considered)
       },
 
+      handleStatusSelection(){
+        console.log(statusTagSelectionValues)
+      },
+
       //批量备货
-      handleUpdatePreparedState(){
+      handleUpdateParcelState(){
         if(this.checkBoxValues==this.checkBoxValuesCompare){
 
           //TODO: add logic to detect unchanged submissions...
@@ -463,6 +487,12 @@
         
       },
 
+      handlePrintParcel(){
+        let selectedList=this.checkBoxValues.map();
+        let res = this.chec.filter((id) => !a2.includes(id));
+
+      },
+
       handleResetSearch() {
         this.listQuery = Object.assign({}, defaultListQuery);
       },
@@ -470,28 +500,28 @@
         this.listQuery.pageNum = 1;
         this.getList();
       },
-      handleSelectionChange(val){
-        this.multipleSelection = val;
-      },
-      handleViewOrder(index, row){
-        this.$router.push({path:'/oms/orderDetail',query:{id:row.id}})
-      },
-      handleCloseOrder(index, row){
-        this.closeOrder.dialogVisible=true;
-        this.closeOrder.orderIds=[row.id];
-      },
-      handleDeliveryOrder(index, row){
-        let listItem = this.covertOrder(row);
-        this.$router.push({path:'/oms/deliverOrderList',query:{list:[listItem]}})
-      },
-      handleViewLogistics(index, row){
-        this.logisticsDialogVisible=true;
-      },
-      handleDeleteOrder(index, row){
-        let ids=[];
-        ids.push(row.id);
-        this.deleteOrder(ids);
-      },
+      // handleSelectionChange(val){
+      //   this.multipleSelection = val;
+      // },
+      // handleViewOrder(index, row){
+      //   this.$router.push({path:'/oms/orderDetail',query:{id:row.id}})
+      // },
+      // handleCloseOrder(index, row){
+      //   this.closeOrder.dialogVisible=true;
+      //   this.closeOrder.orderIds=[row.id];
+      // },
+      // handleDeliveryOrder(index, row){
+      //   let listItem = this.covertOrder(row);
+      //   this.$router.push({path:'/oms/deliverOrderList',query:{list:[listItem]}})
+      // },
+      // handleViewLogistics(index, row){
+      //   this.logisticsDialogVisible=true;
+      // },
+      // handleDeleteOrder(index, row){
+      //   let ids=[];
+      //   ids.push(row.id);
+      //   this.deleteOrder(ids);
+      // },
       handleBatchOperate(){
         if(this.multipleSelection==null||this.multipleSelection.length<1){
           this.$message({
@@ -574,38 +604,48 @@
           this.total = response.data.total;
         });
       },
-      deleteOrder(ids){
-        this.$confirm('是否要进行该删除操作?', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          let params = new URLSearchParams();
-          params.append("ids",ids);
-          deleteOrder(params).then(response=>{
-            this.$message({
-              message: '删除成功！',
-              type: 'success',
-              duration: 1000
-            });
-            this.getList();
-          });
-        })
+      getWarehouseList() {
+        fetchWarehouseList().then(response => {
+          this.warehouseOptions = [];
+          let warehouseList = response.data;
+          console.log(warehouseList)
+          for (let i = 0; i < warehouseList.length; i++) {
+            this.warehouseOptions.push({ label: warehouseList[i].name, value: warehouseList[i].id });
+          }
+        });
       },
-      covertOrder(order){
-        let address=order.receiverProvince+order.receiverCity+order.receiverRegion+order.receiverDetailAddress;
-        let listItem={
-          orderId:order.id,
-          orderSn:order.orderSn,
-          receiverName:order.receiverName,
-          receiverPhone:order.receiverPhone,
-          receiverPostCode:order.receiverPostCode,
-          address:address,
-          deliveryCompany:null,
-          deliverySn:null
-        };
-        return listItem;
-      }
+      // deleteOrder(ids){
+      //   this.$confirm('是否要进行该删除操作?', '提示', {
+      //     confirmButtonText: '确定',
+      //     cancelButtonText: '取消',
+      //     type: 'warning'
+      //   }).then(() => {
+      //     let params = new URLSearchParams();
+      //     params.append("ids",ids);
+      //     deleteOrder(params).then(response=>{
+      //       this.$message({
+      //         message: '删除成功！',
+      //         type: 'success',
+      //         duration: 1000
+      //       });
+      //       this.getList();
+      //     });
+      //   })
+      // },
+      // covertOrder(order){
+      //   let address=order.receiverProvince+order.receiverCity+order.receiverRegion+order.receiverDetailAddress;
+      //   let listItem={
+      //     orderId:order.id,
+      //     orderSn:order.orderSn,
+      //     receiverName:order.receiverName,
+      //     receiverPhone:order.receiverPhone,
+      //     receiverPostCode:order.receiverPostCode,
+      //     address:address,
+      //     deliveryCompany:null,
+      //     deliverySn:null
+      //   };
+      //   return listItem;
+      // }
     }
   }
 </script>

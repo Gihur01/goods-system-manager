@@ -42,15 +42,20 @@
             </el-date-picker>
           </el-form-item>
 
-          <el-form-item>
-            <el-checkbox-group v-model="statusTagSelectionValues" @change="handleSearchList()" size="medium">
+          <el-form-item label="筛选包裹状态：">
+            <div>
+            <el-checkbox-group v-model="statusTagSelectionValues" @change="handleSearchList()" size="small">
               <el-checkbox-button  
-                v-for="item in statusOptions"
+                v-for="item in statusFilterOptions"
                 :key="item.value"
                 :label="item.label"
                 :value="item.value"></el-checkbox-button>
             </el-checkbox-group>
-
+            <el-button @click="handleUpdateParcelState" style="margin: 10px;" type="primary">
+              搜索
+              <i class="el-icon-search"></i>
+            </el-button>
+          </div>
           </el-form-item>
           <!-- <el-form-item label="订单分类：">
             <el-select v-model="listQuery.orderType" class="input-width" placeholder="全部" clearable>
@@ -78,28 +83,33 @@
       <span>数据列表</span>
     </el-card> -->
 
-    <el-card shadow="none">
+    <el-card shadow="none" >
 <!-- 这个我需要修改！ -->
-      <span>状态设置</span>
-      <el-select v-model="listQuery.status"  class="input-width" placeholder="全部" clearable>
-        <el-option v-for="item in statusOptions"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value">
+      <!-- <div class="input-group"> -->
+
+        <span class="filter-label">状态设置：</span>
+        <el-select v-model="listQuery.status"  placeholder="全部" clearable style="max-width:100px; margin-left: 5px;">
+          <el-option v-for="item in statusFilterOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value">
         </el-option>
       </el-select>
-      <el-button @click="handleUpdateParcelState" style="margin: 10px;">
+    <!-- </div> -->
+      <el-button @click="handleUpdateParcelState" style="margin: 10px;" type="primary">
       提交
       </el-button>
-      <el-button @click="handleCheckAll" style="margin: 10px;">
-      全选
-      </el-button>
+      
       <el-button @click="handlePrintParcel" style="margin: 10px;">
         打印
       </el-button>
       <el-button  @click="handleExpandAll" style="margin: 10px; float: right;">
       全部展开/收起
       </el-button>
+      <el-button @click="handleCheckAll" style="margin: 10px; float: right;" >
+      全选
+      </el-button>
+      
     </el-card>
     
 <!-- collapse list -->
@@ -114,7 +124,7 @@
 
           <template slot="title">
             <span>{{ item.parcelSn==null? "无包裹单号":item.parcelSn }}</span>
-            <el-checkbox v-model="checkBoxValues[item.parcelSn]"></el-checkbox>
+            <el-checkbox v-model="checkBoxValues[item.id]"></el-checkbox>
           </template>
 
           <!-- list of items in this order(package) -->
@@ -130,6 +140,22 @@
           </div>
       </Collapsible>
    </div>
+
+   <div class="pagination-container">
+      <el-pagination
+        background
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        
+        layout="total, sizes,prev, pager, next,jumper"
+        :current-page.sync="listQuery.pageNum"
+        :page-size="listQuery.pageSize"
+        :page-sizes="[5,10,15]"
+        :total="total"
+        >
+      </el-pagination>
+    </div>
+  </div>
 
 <!--    <div class="table-container">
       <el-table ref="orderTable"
@@ -220,19 +246,7 @@
     </el-dialog>
     <logistics-dialog v-model="logisticsDialogVisible"></logistics-dialog>
   </div> -->
-  <div class="pagination-container">
-      <el-pagination
-        background
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-        layout="total, sizes,prev, pager, next,jumper"
-        :current-page.sync="listQuery.pageNum"
-        :page-size="listQuery.pageSize"
-        :page-sizes="[5,10,15]"
-        :total="total">
-      </el-pagination>
-    </div>
-  </div>
+  
 </template>
 <script>
   import {fetchItemList,closeOrder,deleteOrder,getOrderDetail} from '@/api/order'
@@ -279,6 +293,7 @@
         checkBoxValuesCompare:{}, //Stores the state of checkboxes after preparation button is pressed.
         statusTagSelectionValues:[], //Stores value of the status tags
         warehouseOptions:[],
+        printList:[], //list of parcels to be printed
         printedList:[], //list of parcels already printed
         //logic: selected - printed = to be printed
 
@@ -294,27 +309,30 @@
           content:null,
           orderIds:[]
         },
-        statusOptions: [
+        statusFilterOptions: [
           {
-            label: '待付款',
+            label: '待备货',
             value: 0
           },
           {
-            label: '待发货',
+            label: '已备货',
             value: 1
           },
           {
-            label: '已发货',
+            label: '已打包',
             value: 2
           },
           {
-            label: '已完成',
+            label: '已发送',
             value: 3
           },
           {
-            label: '已关闭',
+            label: '已收货',
             value: 4
           }
+        ],
+        statusUpdateOptions:[
+
         ],
         orderTypeOptions: [
           {
@@ -409,8 +427,8 @@
         };
       },
 
-      handleToggleOrder(id) {
-        
+      //sets the expanded state of the individual collapsible elements
+      updateCollapsibleState(id){
         console.log(id);
         if(this.expandedOrders[id] == true){
           this.$set(this.expandedOrders,id,false);
@@ -418,23 +436,30 @@
         else{
           this.$set(this.expandedOrders,id,true);
         }
+      },
 
+      getParcelItems(id){
         if(id in this.itemList){
           //if the list of items was already requested for this id
           //...
         }
         else{
           this.itemListQuery.parcelId=id;
-          console.log(this.itemListQuery);
+          // console.log(this.itemListQuery);
 
           //this fails to send the query to backend! Why?
           fetchItemList(this.itemListQuery).then(response => {
           this.$set(this.itemList,id,response.data.list);
           });
-          console.log(this.itemList);
+          // console.log(this.itemList);
         };
 
         //TODO: add code to put the list into localstorage (to be considered)
+      },
+
+      handleToggleOrder(id) {
+        this.updateCollapsibleState(id);
+        this.getParcelItems(id);
       },
 
       handleStatusSelection(){
@@ -467,20 +492,22 @@
          });
          this.$set(this.componentStates, "checkedAll", false)
         };
+
+        console.log(this.checkBoxValues)
       },
 
       handleExpandAll(){
         if(this.componentStates.expandedAll==false){
           this.list.forEach(element => {
-            // this.$set(this.expandedOrders,element.id,true)
-            this.handleToggleOrder(element.id)
+            this.$set(this.expandedOrders,element.id,true)
+            this.getParcelItems(element.id);
          });
          this.$set(this.componentStates, "expandedAll", true)
         }
+
         else{
           this.list.forEach(element => {
-            // this.$set(this.expandedOrders,element.id,false)
-            this.handleToggleOrder(element.id)
+            this.updateCollapsibleState(element.id);
          });
          this.$set(this.componentStates, "expandedAll", false)
         };
@@ -488,8 +515,30 @@
       },
 
       handlePrintParcel(){
-        let selectedList=this.checkBoxValues.map();
-        let res = this.chec.filter((id) => !a2.includes(id));
+        let selectedList=Object.keys(this.checkBoxValues).map(key=>{
+          if(this.checkBoxValues[key]==true)
+          return key;
+        });
+        let res = selectedList.filter((id) => !this.printedList.includes(id));
+        console.log(res)
+        let parcelSnList=[];
+        let emptySnList=[];
+        parcelSnList=this.list.filter(obj=>{
+          console.log(obj.id);
+          if(res.includes(obj.id)){
+            
+            if(obj.parcelId==null){
+              emptySnList.push(obj.parcelId);
+            }
+            else
+              return obj.parcelId;
+          }});
+        
+        this.printedList=res.slice();
+        
+        console.log(parcelSnList);
+        console.log(emptySnList);
+        console.log(this.printedList);
 
       },
 
@@ -608,7 +657,7 @@
         fetchWarehouseList().then(response => {
           this.warehouseOptions = [];
           let warehouseList = response.data;
-          console.log(warehouseList)
+          // console.log(warehouseList)
           for (let i = 0; i < warehouseList.length; i++) {
             this.warehouseOptions.push({ label: warehouseList[i].name, value: warehouseList[i].id });
           }

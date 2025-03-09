@@ -88,15 +88,15 @@
       <!-- <div class="input-group"> -->
 
         <span class="filter-label">状态设置：</span>
-        <el-select v-model="listQuery.status"  placeholder="全部" clearable style="max-width:100px; margin-left: 5px;">
-          <el-option v-for="item in statusFilterOptions"
+        <el-select v-model="operateType" placeholder="批量操作" clearable style="max-width:100px; margin-left: 5px;">
+          <el-option v-for="item in operateOptions"
           :key="item.value"
           :label="item.label"
           :value="item.value">
         </el-option>
       </el-select>
     <!-- </div> -->
-      <el-button @click="handleUpdateParcelState" style="margin: 10px;" type="primary">
+      <el-button @click="handleBatchOperate()" style="margin: 10px;" type="primary">
       提交
       </el-button>
       
@@ -255,6 +255,7 @@
   import {formatDate} from '@/utils/date';
   import LogisticsDialog from '@/views/oms/order/components/logisticsDialog';
   import Collapsible from '@/components/Collapsible2';
+
   const defaultListQuery = {
     pageNum: 1,
     pageSize: 10,
@@ -285,7 +286,6 @@
         list: [],
         total: null,
         operateType: null,
-        clickedId: null, //the id that the user just clicked
         multipleSelection: [], //legacy multi select array for the data list
         expandedOrders:{}, //store order expanded state
         itemList:{}, //store list of all items (in the parcels)
@@ -293,6 +293,9 @@
         checkBoxValuesCompare:{}, //Stores the state of checkboxes after preparation button is pressed.
         statusTagSelectionValues:[], //Stores value of the status tags
         warehouseOptions:[],
+
+        //variables used for printing:
+        parcelIdMap:{},
         printList:[], //list of parcels to be printed
         printedList:[], //list of parcels already printed
         //logic: selected - printed = to be printed
@@ -519,26 +522,35 @@
           if(this.checkBoxValues[key]==true)
           return key;
         });
-        let res = selectedList.filter((id) => !this.printedList.includes(id));
-        console.log(res)
+
+        //in this list, the already printed ids are filtered out
+        let filteredList = selectedList.filter((id) => !this.printedList.includes(id));
+        console.log(filteredList);
         let parcelSnList=[];
         let emptySnList=[];
-        parcelSnList=this.list.filter(obj=>{
-          console.log(obj.id);
-          if(res.includes(obj.id)){
-            
-            if(obj.parcelId==null){
-              emptySnList.push(obj.parcelId);
-            }
-            else
-              return obj.parcelId;
-          }});
+
+        for(let parcel of this.list){
+          this.parcelIdMap[parcel.id]=parcel.parcelSn;
+        };
+
+        for(let id of filteredList){
+          if(this.parcelIdMap[id]!=null){
+            parcelSnList.push(this.parcelIdMap[id]);
+          }
+          else
+            emptySnList.push(id);
+        }
+        for(let i of filteredList)
+          this.printedList.push(i);
         
-        this.printedList=res.slice();
+        console.log("parcelSnList, ",parcelSnList);
+        console.log("emptyList, ",emptySnList);
+        console.log("Printedlist ",this.printedList);
+
+        //for testing, just print this fixed pdf.
+        this.autoPrintPDFByPath("/labels/java_clients_rest_PrintLabels.pdf")
         
-        console.log(parcelSnList);
-        console.log(emptySnList);
-        console.log(this.printedList);
+        
 
       },
 
@@ -663,6 +675,22 @@
           }
         });
       },
+
+
+      //auto print pdf, courtesy ChatGPT! :)
+      autoPrintPDFByPath(pdfPath) {
+        const iframe = document.createElement("iframe");
+
+        iframe.style.display = "none"; // Hide iframe
+        iframe.src = pdfPath;
+
+        iframe.onload = function () {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+        };
+
+        document.body.appendChild(iframe);
+      }
       // deleteOrder(ids){
       //   this.$confirm('是否要进行该删除操作?', '提示', {
       //     confirmButtonText: '确定',

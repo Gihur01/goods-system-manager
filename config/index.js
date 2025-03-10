@@ -20,7 +20,6 @@ module.exports = {
     notifyOnErrors: true,
     poll: false, // https://webpack.js.org/configuration/dev-server/#devserver-watchoptions-
 
-    // "Content-Security-Policy": "default-src 'self'; script-src 'self'; frame-src 'self' data: blob:;",
     /**
      * Source Maps
      */

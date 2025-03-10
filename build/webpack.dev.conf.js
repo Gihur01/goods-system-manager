@@ -22,6 +22,10 @@ const devWebpackConfig = merge(baseWebpackConfig, {
 
   // these devServer options should be customized in /config/index.js
   devServer: {
+    headers: {
+      // "Content-Security-Policy": "default-src 'self'; script-src 'self'; frame-src 'self' data: blob:;"
+      "Content-Security-Policy": "frame-src 'self' data: blob:;"
+    },
     
     clientLogLevel: 'warning',
     historyApiFallback: {

@@ -103,6 +103,9 @@
       <el-button @click="handlePrintParcel" style="margin: 10px;">
         打印
       </el-button>
+      <el-button @click="handlePrintParcel" style="margin: 10px;">
+        导出商品清单
+      </el-button>
       <el-button  @click="handleExpandAll" style="margin: 10px; float: right;">
       全部展开/收起
       </el-button>
@@ -551,6 +554,10 @@
         this.autoPrintPDFByPath("/labels/java_clients_rest_PrintLabels.pdf")
         
         
+
+      },
+
+      handleExportProducts(){
 
       },
 

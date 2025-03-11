@@ -19,7 +19,7 @@ export function fetchParcelList(params) {
 export function fetchSummaizedItemList(params){
   return request({
     url:'/order/update/stockup',
-    method:'get',
+    method:'post',
     params:params
   })
 }

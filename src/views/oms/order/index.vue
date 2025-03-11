@@ -559,14 +559,16 @@
         let selectedParcelIds=[];
         Object.keys(this.checkBoxValues).forEach(key=>{
           if(this.checkBoxValues[key]==true)
-            selectedParcelIds.push(this.checkBoxValues[key]);
+            selectedParcelIds.push(parseInt(key));
         });
-
-        fetchSummaizedItemList(selectedParcelIds).then(response=>{
+        console.log(selectedParcelIds);
+        let params=new URLSearchParams();
+        params.append("parcelIds",selectedParcelIds)
+        fetchSummaizedItemList(params).then(response=>{
           let data=response.data;
           console.log(data);
           let name=new Date();
-          name=name.toLocaleDateString()
+          name=name.toLocaleDateString();
           name+=" 导出";
           console.log(name);
           const worksheet = XLSX.utils.json_to_sheet(data);

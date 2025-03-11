@@ -103,7 +103,7 @@
       <el-button @click="handlePrintParcel" style="margin: 10px;">
         打印
       </el-button>
-      <el-button @click="handlePrintParcel" style="margin: 10px;">
+      <el-button @click="handleExportProducts" style="margin: 10px;">
         导出商品清单
       </el-button>
       <el-button  @click="handleExpandAll" style="margin: 10px; float: right;">
@@ -253,11 +253,12 @@
 </template>
 <script>
   import {fetchItemList,closeOrder,deleteOrder,getOrderDetail} from '@/api/order'
-  import {fetchParcelList, printParcel} from '@/api/parcel'
+  import {fetchParcelList, printParcel, fetchSummaizedItemList} from '@/api/parcel'
   import {fetchList as fetchWarehouseList } from '@/api/warehouse'
   import {formatDate} from '@/utils/date';
   import LogisticsDialog from '@/views/oms/order/components/logisticsDialog';
   import Collapsible from '@/components/Collapsible2';
+  import * as XLSX from "xlsx";
 
   const defaultListQuery = {
     pageNum: 1,
@@ -299,7 +300,6 @@
 
         //variables used for printing:
         parcelIdMap:{},
-        printList:[], //list of parcels to be printed
         printedList:[], //list of parcels already printed
         //logic: selected - printed = to be printed
 
@@ -552,12 +552,29 @@
 
         //for testing, just print this fixed pdf.
         this.autoPrintPDFByPath("/labels/java_clients_rest_PrintLabels.pdf")
-        
-        
-
       },
 
       handleExportProducts(){
+        //first get a list of ids
+        let selectedParcelIds=[];
+        Object.keys(this.checkBoxValues).forEach(key=>{
+          if(this.checkBoxValues[key]==true)
+            selectedParcelIds.push(this.checkBoxValues[key]);
+        });
+
+        fetchSummaizedItemList(selectedParcelIds).then(response=>{
+          let data=response.data;
+          console.log(data);
+          let name=new Date();
+          name=name.toLocaleDateString()
+          name+=" 导出";
+          console.log(name);
+          const worksheet = XLSX.utils.json_to_sheet(data);
+          const workbook = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+          XLSX.writeFile(workbook, filename);
+        })
+
 
       },
 

@@ -14,3 +14,12 @@ export function fetchParcelList(params) {
     params:params
   })
 }
+
+//this fetches a list,showing quantity of each item
+export function fetchSummaizedItemList(params){
+  return request({
+    url:'/order/update/stockup',
+    method:'get',
+    params:params
+  })
+}

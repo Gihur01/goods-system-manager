@@ -101,7 +101,7 @@
       </el-button>
       
       <el-button @click="handlePrintParcel" style="margin: 10px;">
-        打印
+        打印标签
       </el-button>
       <el-button @click="handleExportProducts" style="margin: 10px;">
         导出商品清单
@@ -153,7 +153,7 @@
         layout="total, sizes,prev, pager, next,jumper"
         :current-page.sync="listQuery.pageNum"
         :page-size="listQuery.pageSize"
-        :page-sizes="[5,10,15]"
+        :page-sizes="[20,50,100]"
         :total="total"
         >
       </el-pagination>
@@ -262,7 +262,7 @@
 
   const defaultListQuery = {
     pageNum: 1,
-    pageSize: 10,
+    pageSize: 20,
     parcelID: null,
     parcelStatus: null,
     warehouseId: null,
@@ -448,18 +448,19 @@
         if(id in this.itemList){
           //if the list of items was already requested for this id
           //...
+          console.log("id in list");
         }
         else{
           this.itemListQuery.parcelId=id;
           // console.log(this.itemListQuery);
 
-          //this fails to send the query to backend! Why?
           fetchItemList(this.itemListQuery).then(response => {
           this.$set(this.itemList,id,response.data.list);
           });
-          // console.log(this.itemList);
+          console.log("id NOT in list")
+           
         };
-
+        console.log("id:",id,"list",this.itemList);
         //TODO: add code to put the list into localstorage (to be considered)
       },
 
@@ -469,7 +470,7 @@
       },
 
       handleStatusSelection(){
-        console.log(statusTagSelectionValues)
+        console.log(this.statusTagSelectionValues)
       },
 
       //批量备货
@@ -504,9 +505,10 @@
 
       handleExpandAll(){
         if(this.componentStates.expandedAll==false){
+          console.log("expanding all");
           this.list.forEach(element => {
             this.$set(this.expandedOrders,element.id,true)
-            this.getParcelItems(element.id);
+            this.getParcelItems(parseInt(element.id));
          });
          this.$set(this.componentStates, "expandedAll", true)
         }
@@ -517,7 +519,6 @@
          });
          this.$set(this.componentStates, "expandedAll", false)
         };
-        
       },
 
       handlePrintParcel(){
@@ -566,15 +567,24 @@
         params.append("parcelIds",selectedParcelIds)
         fetchSummaizedItemList(params).then(response=>{
           let data=response.data;
-          console.log(data);
+          console.log("data is:",data);
           let name=new Date();
           name=name.toLocaleDateString();
-          name+=" 导出";
+          name+=" 导出.xlsx";
           console.log(name);
+
           const worksheet = XLSX.utils.json_to_sheet(data);
+          var wscols = [ //the width of columns.
+            {wch:6},
+            {wch:15},
+            {wch:10},
+            {wch:20}
+          ];
+
+          worksheet['!cols'] = wscols;
           const workbook = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
-          XLSX.writeFile(workbook, filename);
+          XLSX.utils.book_append_sheet(workbook, worksheet, "1");
+          XLSX.writeFile(workbook, name);
         })
 
 

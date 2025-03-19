@@ -25,19 +25,19 @@ export function fetchSummarizedItemList(params){
 }
 
 
-export function updateParcelState(state,params){
+export function updateParcelState(state,data){
   switch(state){
     case 4:
       return request({
         url:'/order/update/completePacking',
         method:'post',
-        params:params
+        data:data
       })
     case 5:
       return request({
         url:'/order/update/collectParcel',
         method:'post',
-        params:params
+        data:data
       })
 
   }

@@ -1,4 +1,4 @@
-<template> 
+<template>
   <div class="app-container">
     <el-card class="flex-filter-container" shadow="never">
       <!-- <div> -->
@@ -133,7 +133,7 @@
 
         <div class="pagination-container">
       <el-pagination background @size-change="handleSizeChange" @current-change="handleCurrentChange"
-        layout="total, sizes,prev, pager, next,jumper" :page-size="listQuery.pageSize" :page-sizes="[5, 10, 15]"
+        layout="total, sizes,prev, pager, next,jumper" :page-size="listQuery.pageSize" :page-sizes="[20, 50, 1000]"
         :current-page.sync="listQuery.pageNum" :total="total">
       </el-pagination>
     </div>
@@ -296,7 +296,7 @@ import { fetchListWithChildren } from '@/api/productCate'
 const defaultListQuery = {
   keyword: null,
   pageNum: 1,
-  pageSize: 5,
+  pageSize: 20,
   publishStatus: null,
   verifyStatus: null,
   productSn: null,
@@ -700,9 +700,9 @@ export default {
 </script>
 
 <style scoped>
-#product-sn{
+/* #product-sn{
 
-}
+} */
 
 #product-quantity{
   padding-left: 5px;

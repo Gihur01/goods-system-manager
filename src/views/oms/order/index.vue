@@ -4,163 +4,110 @@
       <div>
         <i class="el-icon-search"></i>
         <span>筛选搜索</span>
-        <!-- <el-button
-          style="float:right"
-          type="primary"
-          @click="handleSearchList()"
-          size="small">
-          查询搜索
-        </el-button>
-        <el-button
-          style="float:right;margin-right: 15px"
-          @click="handleResetSearch()"
-          size="small">
-          重置
-        </el-button> -->
+
       </div>
       <div style="margin-top: 15px">
-        
+
         <el-form :inline="true" :model="listQuery" size="small" label-width="140px">
           <el-form-item label="仓库选择:">
-            <el-select v-model="listQuery.warehouseId" @change="handleSearchList()" placeholder="请选择库" id="select-warehouse"  clearable>
+            <el-select v-model="listQuery.warehouseId" @change="handleSearchList()" placeholder="请选择库"
+              id="select-warehouse" clearable>
               <el-option v-for="item in warehouseOptions" :key="item.value" :label="item.label" :value="item.value">
               </el-option>
             </el-select>
           </el-form-item>
-<!-- this needs to be added in api -->
+          <!-- this needs to be added in api -->
           <el-form-item label="搜索包裹编号：">
             <el-input v-model="listQuery.parcelID" class="input-width" placeholder="包裹单编号"></el-input>
           </el-form-item>
           <el-form-item label="提交时间：">
-            <el-date-picker
-              class="input-width"
-              v-model="listQuery.createTime"
-              value-format="yyyy-MM-dd"
-              type="date"
-              placeholder="请选择时间"
-              >
+            <el-date-picker class="input-width" v-model="listQuery.createTime" value-format="yyyy-MM-dd" type="date"
+              placeholder="请选择时间">
             </el-date-picker>
           </el-form-item>
 
           <el-form-item label="筛选包裹状态：">
             <div>
-            <el-checkbox-group v-model="statusTagSelectionValues" @change="handleSearchList()" size="small">
-              <el-checkbox-button  
-                v-for="item in statusFilterOptions"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"></el-checkbox-button>
-            </el-checkbox-group>
-            <el-button @click="handleUpdateParcelState" style="margin: 10px;" type="primary">
-              搜索
-              <i class="el-icon-search"></i>
-            </el-button>
-          </div>
+              <el-checkbox-group v-model="statusTagSelectionValues" @change="handleSearchList()" size="small">
+                <el-checkbox-button v-for="item in statusFilterOptions" :key="item.value" :label="item.label"
+                  :value="item.value"></el-checkbox-button>
+              </el-checkbox-group>
+              <el-button @click="handleSearchList" style="margin: 10px;" type="primary">
+                搜索
+                <i class="el-icon-search"></i>
+              </el-button>
+            </div>
           </el-form-item>
-          <!-- <el-form-item label="订单分类：">
-            <el-select v-model="listQuery.orderType" class="input-width" placeholder="全部" clearable>
-              <el-option v-for="item in orderTypeOptions"
-                         :key="item.value"
-                         :label="item.label"
-                         :value="item.value">
-              </el-option>
-            </el-select>
-          </el-form-item> -->
-          <!-- <el-form-item label="订单来源：">
-            <el-select v-model="listQuery.sourceType" class="input-width" placeholder="全部" clearable>
-              <el-option v-for="item in sourceTypeOptions"
-                         :key="item.value"
-                         :label="item.label"
-                         :value="item.value">
-              </el-option>
-            </el-select>
-          </el-form-item> -->
+
         </el-form>
       </div>
     </el-card>
-    <!-- <el-card class="operate-container" shadow="never">
-      <i class="el-icon-tickets"></i>
-      <span>数据列表</span>
-    </el-card> -->
 
-    <el-card shadow="none" >
-<!-- 这个我需要修改！ -->
-      <!-- <div class="input-group"> -->
 
-        <span class="filter-label">状态设置：</span>
-        <el-select v-model="operateType" placeholder="批量操作" clearable style="max-width:100px; margin-left: 5px;">
-          <el-option v-for="item in operateOptions"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value">
-        </el-option>
-      </el-select>
-    <!-- </div> -->
-      <el-button @click="handleBatchOperate()" style="margin: 10px;" type="primary">
-      提交
-      </el-button>
-      
+    <el-card shadow="none">
+      <!-- 这个我需要修改！ -->
+      <div>
       <el-button @click="handlePrintParcel" style="margin: 10px;">
         打印标签
       </el-button>
-      <el-button @click="handleExportProducts" style="margin: 10px;">
-        导出商品清单
+
+      <el-button @click="handleCompletePacking" style="margin: 10px;">
+        发货完毕
       </el-button>
-      <el-button  @click="handleExpandAll" style="margin: 10px; float: right;">
-      全部展开/收起
-      </el-button>
-      <el-button @click="handleCheckAll" style="margin: 10px; float: right;" >
-      全选
-      </el-button>
-      
+
+    </div>
+
+      <span v-if="componentStates.selectedAll" class="center-group">已选择全部！</span>
+
+      <div class="right-group">
+        <el-button @click="handleExpandAll" style="margin: 10px;">
+          全部展开/收起
+        </el-button>
+        <el-button @click="handleCheckAll" style="margin: 10px;">
+          勾选全部
+        </el-button>
+        <el-button @click="handleSelectAll" style="margin: 10px;">
+          全择（所有分页）
+        </el-button>
+      </div>
+
+
     </el-card>
-    
-<!-- collapse list -->
+
+    <!-- collapse list -->
 
     <div class="grid-container" id="order-grid">
-      <Collapsible 
-          v-for="(item,index) in list"
-          :key="index"
-          :id="item.id" 
-          :expanded="expandedOrders[item.id]"
-          @click="handleToggleOrder">
+      <Collapsible v-for="(item,index) in list" :key="index" :id="item.id" :expanded="expandedOrders[item.id]"
+        @click="handleToggleOrder">
 
-          <template slot="title">
-            <span>{{ item.parcelSn==null? "无包裹单号":item.parcelSn }}</span>
-            <el-checkbox v-model="checkBoxValues[item.id]"></el-checkbox>
-          </template>
+        <template slot="title">
+          <span>{{ item.parcelSn==null? "无包裹单号":item.parcelSn }}</span>
+          <el-checkbox v-model="checkBoxValues[item.id]" @change="handleToggleCheckbox($event, item.id)"></el-checkbox>
+        </template>
 
-          <!-- list of items in this order(package) -->
-          <div class="grid-container" id="order-item-grid" >
-            <div  class="product-container" v-for="product in itemList[item.id]">
-              <div class="product-text" id="product-title">{{ product.productName }}</div>
-              <div class="product-text" id="product-sn">{{ product.productSn }}</div>
-              <div class="product-text" id="product-quantity">{{ product.productQuantity }}</div>
-            
-          
-          </div>
+        <!-- list of items in this order(package) -->
+        <div class="grid-container" id="order-item-grid">
+          <div class="product-container" v-for="product in itemList[item.id]">
+            <div class="product-text" id="product-title">{{ product.productName }}</div>
+            <div class="product-text" id="product-sn">{{ product.productSn }}</div>
+            <div class="product-text" id="product-quantity">{{ product.productQuantity }}</div>
+
 
           </div>
+
+        </div>
       </Collapsible>
-   </div>
+    </div>
 
-   <div class="pagination-container">
-      <el-pagination
-        background
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-        
-        layout="total, sizes,prev, pager, next,jumper"
-        :current-page.sync="listQuery.pageNum"
-        :page-size="listQuery.pageSize"
-        :page-sizes="[20,50,100]"
-        :total="total"
-        >
+    <div class="pagination-container">
+      <el-pagination background @size-change="handleSizeChange" @current-change="handleCurrentChange"
+        layout="total, sizes,prev, pager, next,jumper" :current-page.sync="listQuery.pageNum"
+        :page-size="listQuery.pageSize" :page-sizes="[20,50,100]" :total="total">
       </el-pagination>
     </div>
   </div>
 
-<!--    <div class="table-container">
+  <!--    <div class="table-container">
       <el-table ref="orderTable"
                 :data="list"
                 style="width: 100%;"
@@ -249,16 +196,15 @@
     </el-dialog>
     <logistics-dialog v-model="logisticsDialogVisible"></logistics-dialog>
   </div> -->
-  
+
 </template>
 <script>
   import {fetchItemList,closeOrder,deleteOrder,getOrderDetail} from '@/api/order'
-  import {fetchParcelList, printParcel, fetchSummaizedItemList} from '@/api/parcel'
+  import {fetchParcelList, printParcel, updateParcelState} from '@/api/parcel'
   import {fetchList as fetchWarehouseList } from '@/api/warehouse'
   import {formatDate} from '@/utils/date';
   import LogisticsDialog from '@/views/oms/order/components/logisticsDialog';
-  import Collapsible from '@/components/Collapsible2';
-  import * as XLSX from "xlsx";
+  import Collapsible from '@/components/Collapsible';
 
   const defaultListQuery = {
     pageNum: 1,
@@ -309,6 +255,7 @@
         componentStates:{
           checkedAll: false,
           expandedAll:false,
+          selectedAll: false, //select ALL (not just current page)
         },
         closeOrder:{
           dialogVisible:false,
@@ -387,22 +334,6 @@
         let date = new Date(time);
         return formatDate(date, 'yyyy-MM-dd hh:mm:ss')
       },
-      formatPayType(value) {
-        if (value === 1) {
-          return '支付宝';
-        } else if (value === 2) {
-          return '微信';
-        } else {
-          return '未支付';
-        }
-      },
-      formatSourceType(value) {
-        if (value === 1) {
-          return 'APP订单';
-        } else {
-          return 'PC订单';
-        }
-      },
       formatStatus(value) {
         if (value === 1) {
           return '待发货';
@@ -428,8 +359,6 @@
         for(let item of this.list){
           this.expandedOrders[item.id]=false;
           this.checkBoxValues[item.id]=false;
-          // this.$set(this.expandedOrders,item.id,false);
-          // this.$set(this.checkBoxValues,item.id,false);
         };
       },
 
@@ -464,6 +393,13 @@
         //TODO: add code to put the list into localstorage (to be considered)
       },
 
+      handleToggleCheckbox(value,id){
+        console.log('Checkbox ID:', id, 'New Value:', value);
+        if(this.componentStates.selectedAll==true)
+          this.$set(this.componentStates,"selectedAll",false);
+      },
+
+
       handleToggleOrder(id) {
         this.updateCollapsibleState(id);
         this.getParcelItems(id);
@@ -473,17 +409,42 @@
         console.log(this.statusTagSelectionValues)
       },
 
-      //批量备货
-      handleUpdateParcelState(){
-        if(this.checkBoxValues==this.checkBoxValuesCompare){
+      //批量揽收
+      handleCompletePacking(){
+        
+        // if(this.checkBoxValues==this.checkBoxValuesCompare){
 
-          //TODO: add logic to detect unchanged submissions...
+        //   //TODO: add logic to detect unchanged submissions...
           
+        // }
+        let selectedList=[];
+        if(this.componentStates.selectedAll==false){
+          selectedList=Object.keys(this.checkBoxValues).map(key=>{
+            if(this.checkBoxValues[key]==true){
+              return parseInt(key);
+            }
+          });
         }
+
+        let params=new URLSearchParams();
+        params.append("parcelIds",selectedList)
+        // console.log(selectedList);
+
+        updateParcelState(5,params);
+
         this.$message({
           message: '提交成功！',
           type: 'success'
         });
+      },
+
+
+      handleSelectAll(){
+        if(this.componentStates.selectedAll==true)
+          this.$set(this.componentStates,"selectedAll",false)
+        else
+          this.$set(this.componentStates,"selectedAll",true)
+        
       },
 
       handleCheckAll(){
@@ -499,6 +460,7 @@
          });
          this.$set(this.componentStates, "checkedAll", false)
         };
+        this.$set(this.componentStates,"selectedAll",false);
 
         console.log(this.checkBoxValues)
       },
@@ -555,40 +517,7 @@
         this.autoPrintPDFByPath("/labels/java_clients_rest_PrintLabels.pdf")
       },
 
-      handleExportProducts(){
-        //first get a list of ids
-        let selectedParcelIds=[];
-        Object.keys(this.checkBoxValues).forEach(key=>{
-          if(this.checkBoxValues[key]==true)
-            selectedParcelIds.push(parseInt(key));
-        });
-        console.log(selectedParcelIds);
-        let params=new URLSearchParams();
-        params.append("parcelIds",selectedParcelIds)
-        fetchSummaizedItemList(params).then(response=>{
-          let data=response.data;
-          console.log("data is:",data);
-          let name=new Date();
-          name=name.toLocaleDateString();
-          name+=" 导出.xlsx";
-          console.log(name);
-
-          const worksheet = XLSX.utils.json_to_sheet(data);
-          var wscols = [ //the width of columns.
-            {wch:6},
-            {wch:15},
-            {wch:10},
-            {wch:20}
-          ];
-
-          worksheet['!cols'] = wscols;
-          const workbook = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(workbook, worksheet, "1");
-          XLSX.writeFile(workbook, name);
-        })
-
-
-      },
+      
 
       handleResetSearch() {
         this.listQuery = Object.assign({}, defaultListQuery);
@@ -597,70 +526,7 @@
         this.listQuery.pageNum = 1;
         this.getList();
       },
-      // handleSelectionChange(val){
-      //   this.multipleSelection = val;
-      // },
-      // handleViewOrder(index, row){
-      //   this.$router.push({path:'/oms/orderDetail',query:{id:row.id}})
-      // },
-      // handleCloseOrder(index, row){
-      //   this.closeOrder.dialogVisible=true;
-      //   this.closeOrder.orderIds=[row.id];
-      // },
-      // handleDeliveryOrder(index, row){
-      //   let listItem = this.covertOrder(row);
-      //   this.$router.push({path:'/oms/deliverOrderList',query:{list:[listItem]}})
-      // },
-      // handleViewLogistics(index, row){
-      //   this.logisticsDialogVisible=true;
-      // },
-      // handleDeleteOrder(index, row){
-      //   let ids=[];
-      //   ids.push(row.id);
-      //   this.deleteOrder(ids);
-      // },
-      handleBatchOperate(){
-        if(this.multipleSelection==null||this.multipleSelection.length<1){
-          this.$message({
-            message: '请选择要操作的订单',
-            type: 'warning',
-            duration: 1000
-          });
-          return;
-        }
-        if(this.operateType===1){
-          //批量发货
-          let list=[];
-          for(let i=0;i<this.multipleSelection.length;i++){
-            if(this.multipleSelection[i].status===1){
-              list.push(this.covertOrder(this.multipleSelection[i]));
-            }
-          }
-          if(list.length===0){
-            this.$message({
-              message: '选中订单中没有可以发货的订单',
-              type: 'warning',
-              duration: 1000
-            });
-            return;
-          }
-          this.$router.push({path:'/oms/deliverOrderList',query:{list:list}})
-        }else if(this.operateType===2){
-          //关闭订单
-          this.closeOrder.orderIds=[];
-          for(let i=0;i<this.multipleSelection.length;i++){
-            this.closeOrder.orderIds.push(this.multipleSelection[i].id);
-          }
-          this.closeOrder.dialogVisible=true;
-        }else if(this.operateType===3){
-          //删除订单
-          let ids=[];
-          for(let i=0;i<this.multipleSelection.length;i++){
-            ids.push(this.multipleSelection[i].id);
-          }
-          this.deleteOrder(ids);
-        }
-      },
+
       handleSizeChange(val){
         this.listQuery.pageNum = 1;
         this.listQuery.pageSize = val;
@@ -727,38 +593,7 @@
 
         document.body.appendChild(iframe);
       }
-      // deleteOrder(ids){
-      //   this.$confirm('是否要进行该删除操作?', '提示', {
-      //     confirmButtonText: '确定',
-      //     cancelButtonText: '取消',
-      //     type: 'warning'
-      //   }).then(() => {
-      //     let params = new URLSearchParams();
-      //     params.append("ids",ids);
-      //     deleteOrder(params).then(response=>{
-      //       this.$message({
-      //         message: '删除成功！',
-      //         type: 'success',
-      //         duration: 1000
-      //       });
-      //       this.getList();
-      //     });
-      //   })
-      // },
-      // covertOrder(order){
-      //   let address=order.receiverProvince+order.receiverCity+order.receiverRegion+order.receiverDetailAddress;
-      //   let listItem={
-      //     orderId:order.id,
-      //     orderSn:order.orderSn,
-      //     receiverName:order.receiverName,
-      //     receiverPhone:order.receiverPhone,
-      //     receiverPostCode:order.receiverPostCode,
-      //     address:address,
-      //     deliveryCompany:null,
-      //     deliverySn:null
-      //   };
-      //   return listItem;
-      // }
+
     }
   }
 </script>

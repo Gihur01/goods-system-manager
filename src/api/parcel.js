@@ -16,10 +16,31 @@ export function fetchParcelList(params) {
 }
 
 //this fetches a list,showing quantity of each item
-export function fetchSummaizedItemList(params){
+export function fetchSummarizedItemList(params){
   return request({
     url:'/order/update/stockup',
     method:'post',
     params:params
   })
 }
+
+
+export function updateParcelState(state,params){
+  switch(state){
+    case 4:
+      return request({
+        url:'/order/update/completePacking',
+        method:'post',
+        params:params
+      })
+    case 5:
+      return request({
+        url:'/order/update/collectParcel',
+        method:'post',
+        params:params
+      })
+
+  }
+  
+}
+

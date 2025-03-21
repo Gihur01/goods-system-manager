@@ -10,7 +10,13 @@
         <el-form :inline="true" :model="listQuery" size="small" label-width="140px">
 
           <el-form-item label="搜索包裹编号：">
+            <div>
             <el-input v-model="listQuery.parcelID" class="input-width" placeholder="包裹单编号"></el-input>
+            <el-button @click="handleSearchList" style="margin: 10px;" type="primary">
+                搜索
+                <i class="el-icon-search"></i>
+            </el-button>
+          </div>
           </el-form-item>
           <el-form-item label="提交时间：">
             <el-date-picker class="input-width" v-model="listQuery.createTime" value-format="yyyy-MM-dd" type="date"
@@ -19,7 +25,14 @@
           </el-form-item>
 
           <el-form-item label="筛选包裹状态：">
-            <div>
+            <el-select v-model="listQuery.parcelStatus" class="input-width" placeholder="已创建" @change="handleSearchList" clearable>
+              <el-option v-for="item in statusFilterOptions"
+                         :key="item.value"
+                         :label="item.label"
+                         :value="item.value">
+              </el-option>
+            </el-select>
+            <!-- <div>
               <el-checkbox-group v-model="statusTagSelectionValues" @change="handleSearchList()" size="small">
                 <el-checkbox-button v-for="item in statusFilterOptions" :key="item.value" :label="item.label"
                   :value="item.value"></el-checkbox-button>
@@ -28,7 +41,7 @@
                 搜索
                 <i class="el-icon-search"></i>
               </el-button>
-            </div>
+            </div> -->
           </el-form-item>
 
         </el-form>
@@ -110,7 +123,7 @@
     pageNum: 1,
     pageSize: 20,
     parcelID: null,
-    parcelStatus: null,
+    parcelStatus: 1,
     warehouseId: null,
   };
   const defaultItemListQuery ={
@@ -164,24 +177,24 @@
         },
         statusFilterOptions: [
           {
-            label: '待备货',
-            value: 0
-          },
-          {
-            label: '已备货',
+            label: '已创建',
             value: 1
           },
           {
-            label: '已打包',
+            label: '已打印标签',
             value: 2
           },
           {
-            label: '已发送',
+            label: '已开始备货',
             value: 3
           },
           {
-            label: '已收货',
+            label: '备货完毕-待揽收',
             value: 4
+          },
+          {
+            label: '揽收完毕-转快递',
+            value: 5
           }
         ],
 
@@ -289,6 +302,13 @@
         console.log(this.statusTagSelectionValues)
       },
 
+      hasSelectedCheck(){
+        if(this.componentStates.selectedAll || Object.values(this.checkBoxValues).includes(true)){
+          return true;
+        }
+          return false;
+      },
+
       //批量备货
       handleCompletePreparation(){
         
@@ -297,6 +317,13 @@
         //   //TODO: add logic to detect unchanged submissions...
           
         // }
+        if(!this.hasSelectedCheck()){
+          this.$message({
+          message: '未选择包裹！',
+          type: 'warning'
+        });
+        return false;
+        }
 
         let selectedList=[];
         if(this.componentStates.selectedAll==false){
@@ -365,6 +392,13 @@
 
 
       handleExportProducts(){
+        if(!this.hasSelectedCheck()){
+          this.$message({
+            message: '未选择包裹！',
+            type: 'warning'
+          });
+          return false;
+        }
         //first get a list of ids
         let selectedParcelIds=[];
 

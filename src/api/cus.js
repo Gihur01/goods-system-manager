@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-  const token = localStorage.getItem("token");  // 从本地存储中获取 token
+  const token = localStorage.getItem("loginToken");  // 从本地存储中获取 token
   if (!token) {
     console.error("Token is missing or expired.");
   }
@@ -9,9 +9,7 @@ export function fetchAll(data) {
     url: '/cus/fetchAll',
     method: 'post',
     data: data, // 这里是请求体，必须用 `data`
-    headers: {
-          'Authorization': `Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJjdXN0ZXN0IiwiY3JlYXRlZCI6MTc0MzM0MDIxMTYzOSwiZXhwIjoxNzQzOTQ1MDExfQ.4iRCgCbNwKJFbUNQkSOnnEPXRQFP_ZLKpbAvxPLnDZ9Pkydap25ZGZYYDujAaSj_Va69RB7Jk-eY-NDEoyI2Vw`  // 确保 token 被正确带上
-        }
+
   })
 }
 

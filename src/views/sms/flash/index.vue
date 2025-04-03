@@ -3,16 +3,30 @@
 		<h2>物流信息管理</h2>
 
 		<!-- 按钮区域 -->
-		<el-card>
-			<el-button @click="triggerFileUpload">新增和更新</el-button>
-			<el-button @click="deleteSelected">删除</el-button>
-			<el-button @click="refreshData">刷新</el-button>
-			<el-button @click="downloadExample">下载示例</el-button>
-			<el-button @click="triggerPdfUpload">上传附件</el-button> <!-- 新增按钮 -->
+		<div class="button-bar-container">
+			<div class="vertical-stack-container">
+				<el-tooltip class="tooltip" effect="dark" content="说明：货柜信息导入，上传文件为xls格式，再次上传会全量替换旧有信息" placement="top-start">
+					<el-button @click="triggerFileUpload">新增和更新</el-button>
+				</el-tooltip>
+				<a href="/static/templates/物流信息示例.xlsx" class="centered-link">下载示例</a>
+			</div>
+
+			<div class="vertical-stack-container">
+				<el-tooltip class="tooltip" effect="dark" content="说明：上传文件以柜号命名，重复上传会删除旧文件" placement="top-start">
+					<el-button @click="triggerPdfUpload">上传附件</el-button>
+				</el-tooltip>
+				<a href="/static/templates/placeholder.pdf" class="centered-link">下载示例</a>
+			</div> <!-- 新增按钮 -->
+
+			<div><el-button @click="deleteSelected">删除</el-button></div>
+			<div><el-button @click="refreshData">刷新</el-button></div>
+
+			<!-- <el-button @click="downloadExample">下载示例</el-button> -->
+			
 
 			<input type="file" ref="fileInput" style="display: none;" @change="handleFileUpload" />
 			<input type="file" ref="pdfInput" style="display: none;" accept="application/pdf" @change="handlePdfUpload" />
-		</el-card>
+		</div>
 
 		<!-- 表格区域 -->
 		<table id="logistics-table" border="1">
@@ -79,12 +93,12 @@ export default {
 			const token = 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImNyZWF0ZWQiOjE3NDMxNTEzOTQyODMsImV4cCI6MTc0Mzc1NjE5NH0.EsxXoq4vfaVlI5o-ouHxQoz5Ui1KaGrl2JDOhnvvRydA1in5MNOp0B4tRvYOps2VuqxS9G-X15XOTzutF0UYEg'
 			// 发送请求获取物流信息
 			axios.post('http://47.91.89.160:8080/cus/fetchAll', {}, {
-			  headers: {
-			    'Authorization': `Bearer ${token}`,  // 在请求头中加上 token
-			  }
+				headers: {
+					'Authorization': `Bearer ${token}`,  // 在请求头中加上 token
+				}
 			})
-			// let params=new URLSearchParams();
-			// fetchAll(params)
+				// let params=new URLSearchParams();
+				// fetchAll(params)
 				.then(response => {
 					console.log("完整返回:", response);  // 打印整个响应对象
 					console.log("返回的数据:", response.data);  // 打印实际返回的数据
@@ -265,6 +279,9 @@ export default {
 		// 下载示例 Excel 文件
 		downloadExample() {
 			// 示例数据
+
+
+
 			const exampleData = [
 				["No", "Receive Date", "Receive Time", "Waybill Number", "Customer Order Number", "Fw Tracking Number", "Container Number", "Status", "Logistics Channel Name", "Loading Port", "Loading Time", "Arrive Port", "Arrive Date", "Target Post Code", "Traget Country", "E-commerce", "Fulfillment Warehouse", "Is Remote", "CTNS", "TIL PCS", "Net Weight kg", "Gross Weight kg", "Measurement m3", "Bill Weight", "Confirmed Bill Weight", "CD Type", "CC Type", "CL Type", "Material", "Additional Notes", "DESCRIPTION", "CC Amount", "Problem Item Type", "Lading Number", "Latest Track Notes", "Track Update Time"],
 				[1, "2024/9/30", "1909", "CNxxxxxxxxxxxx", "Fxx952358", "1Z00xx6xxxxxxxxxxxxx", "XxKxx3xxxxx", "提交/Create", "中欧铁路UPS包税专线/China-Europe Railway DHL Tax-inclusive Line", "NingBo", "2024/11/27", "Duisburg, Germany", "2024/12/18", "12529", "德国/Germany", "Amazon", "DUS2", "Normal", 10, 100, 100, 100, 1.5, 105, "", "买单报关/customs declaration Proxy", "包税/Tax-inclusive", "整柜 AllInFCL", "", "棉衣Cotton-padded jackets", 100000, "N", "。"]
@@ -292,6 +309,10 @@ export default {
 </script>
 
 <style scoped>
+a {
+	color: blue;
+}
+
 table {
 	width: 100%;
 	margin-bottom: 20px;
@@ -313,5 +334,20 @@ button {
 
 button:hover {
 	/* background-color: #45a049; */
+}
+
+.vertical-stack-container {
+	display: flex;
+	flex-direction: column;
+	max-width: fit-content;
+}
+
+.button-bar-container {
+	display: flex;
+	margin: 10px;
+}
+
+.centered-link {
+	align-self: center;
 }
 </style>

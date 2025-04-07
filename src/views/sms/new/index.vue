@@ -4,7 +4,7 @@
 
     <!-- 操作按钮 -->
     <div class="button-group">
-      <button @click="openNoteDialog">新增和更新<br><small>Add / Update</small></button>
+      <button @click="openNoteDialog">轨迹更新<br><small>Trajectory update</small></button>
       <button @click="refreshData">刷新<br><small>Refresh</small></button>
       <button @click="triggerPdfUpload">上传附件<br><small>Upload PDF</small></button>
       <button @click="openDetailDialog">详细信息<br><small>Details</small></button>
@@ -75,7 +75,7 @@
     </table>
 
     <!-- 填写最新轨迹的对话框 -->
-    <el-dialog title="填写最新轨迹" :visible.sync="noteDialogVisible">
+    <el-dialog title="填写最新轨迹<br><small>Enter Latest Track Note</small>" :visible.sync="noteDialogVisible">
       <el-input
         type="textarea"
         v-model="noteInput"
@@ -83,22 +83,22 @@
         rows="4"
       ></el-input>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="noteDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitNote">确认</el-button>
+        <el-button @click="noteDialogVisible = false">取消 / Cancel</el-button>
+        <el-button type="primary" @click="submitNote">确认 / Confirm</el-button>
       </span>
     </el-dialog>
 
-    <el-dialog title="物流详细信息" :visible.sync="detailDialogVisible" width="600px">
-          <div v-if="logisticsDetail">
-            <div v-for="(value, key) in logisticsDetail" :key="key" class="detail-item">
-              <strong>{{ key }}:</strong> {{ value || '—' }}
-            </div>
-          </div>
-          <div v-else>加载中...</div>
-          <template #footer>
-            <el-button @click="detailDialogVisible = false">关闭</el-button>
-          </template>
-        </el-dialog>
+    <el-dialog title="物流详细信息<br><small>Logistics Detailed Information</small>" :visible.sync="detailDialogVisible" width="600px">
+      <div v-if="logisticsDetail">
+        <div v-for="(value, key) in logisticsDetail" :key="key" class="detail-item">
+          <strong>{{ key }}:</strong> {{ value || '—' }}
+        </div>
+      </div>
+      <div v-else>加载中... / Loading ...</div>
+      <template #footer>
+        <el-button @click="detailDialogVisible = false">关闭 / Close</el-button>
+      </template>
+    </el-dialog>
 
   </div>
 </template>
@@ -134,7 +134,7 @@ export default {
     },
     openDetailDialog() {
           if (this.selectedItems.length !== 1) {
-            alert('请只选择一条记录查看详细信息');
+            alert('请只选择一条记录查看详细信息 / Please select only one record to view details');
             return;
           }
           const selected = this.logisticsList.find(i => i.id === this.selectedItems[0]);
@@ -150,7 +150,7 @@ export default {
           }).then(res => {
             this.logisticsDetail = res.data;
           }).catch(err => {
-            alert('查询失败: ' + (err.response.data || err.message));
+            alert('查询失败 / Query failed:  ' + (err.response.data || err.message));
             this.detailDialogVisible = false;
           });
         },
@@ -170,7 +170,7 @@ export default {
         document.body.removeChild(link)
         window.URL.revokeObjectURL(url)
       }).catch(error => {
-        alert('下载失败：' + error.message)
+        alert('下载失败 / Download failed:' + error.message)
       })
     },
     fetchLogistics() {
@@ -186,7 +186,7 @@ export default {
           this.logisticsList = []
         }
       }).catch(error => {
-        alert('获取物流数据失败：' + error.message)
+        alert('获取物流数据失败 / Failed to fetch logistics data: ' + error.message)
       })
     },
     refreshData() {
@@ -197,7 +197,7 @@ export default {
     },
     triggerPdfUpload() {
       if (this.selectedItems.length !== 1) {
-        alert('请选中一条物流记录再上传 PDF')
+        alert('请选中一条物流记录再上传 PDF / Please select one logistics record before uploading PDF')
         return
       }
       this.$refs.pdfInput.click()
@@ -205,13 +205,13 @@ export default {
     handlePdfUpload(event) {
       const file = event.target.files[0]
       if (!file || !file.name.endsWith('.pdf')) {
-        alert('请上传 PDF 文件')
+        alert('请上传 PDF 文件 / Please upload a PDF file')
         return
       }
 
       const selected = this.logisticsList.find(item => item.id === this.selectedItems[0])
       if (!selected || !selected.containerNumber) {
-        alert('所选记录无柜号，无法上传')
+        alert('所选记录无柜号，无法上传 / Selected record has no container number, upload is not possible')
         return
       }
 
@@ -226,16 +226,16 @@ export default {
           'Authorization': `${token}`,
         }
       }).then(() => {
-        alert('上传成功')
+        alert('上传成功 / Upload successful')
         this.refreshData()
       }).catch(error => {
-        alert('上传失败：' + error.message)
+        alert('上传失败 / Upload failed:' + error.message)
       })
     },
     handleFileUpload(event) {
       const file = event.target.files[0]
       if (!file || !file.name.endsWith('.xlsx')) {
-        alert('请上传 Excel 文件')
+        alert('请上传 Excel 文件 / Please upload an Excel file')
         return
       }
 
@@ -274,10 +274,10 @@ export default {
           Authorization: `${token}`,
         }
       }).then(() => {
-        alert('操作成功')
+        alert('操作成功 / Operation successful')
         this.refreshData()
       }).catch(error => {
-        alert('保存/更新失败：' + error.message)
+        alert('保存/更新失败 / Save/Update failed: ' + error.message)
       })
     },
     toggleSelectAll() {
@@ -287,7 +287,7 @@ export default {
     // 打开轨迹弹窗
     openNoteDialog() {
       if (this.selectedItems.length === 0) {
-        alert('请先选择记录')
+        alert('请先选择记录 / Please select a record first')
         return
       }
       this.noteInput = ''
@@ -315,10 +315,10 @@ export default {
         }
       }).then(() => {
         this.noteDialogVisible = false
-        alert('轨迹更新成功')
+        alert('轨迹更新成功 / Track update successful')
         this.refreshData()
       }).catch(err => {
-        alert('轨迹更新失败：' + (err.response.data || err.message))
+        alert('轨迹更新失败 / Track update failed: ' + (err.response.data || err.message))
       })
     }
   },

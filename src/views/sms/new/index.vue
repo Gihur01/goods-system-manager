@@ -1,430 +1,343 @@
-<template> 
-  <div class="app-container">
-    <el-card class="filter-container" shadow="never">
-      <div>
-        <i class="el-icon-search"></i>
-        <span>筛选搜索</span>
-        <el-button
-          style="float:right"
-          type="primary"
-          @click="handleSearchList()"
-          size="small">
-          查询搜索
-        </el-button>
-        <el-button
-          style="float:right;margin-right: 15px"
-          @click="handleResetSearch()"
-          size="small">
-          重置
-        </el-button>
-      </div>
-      <div style="margin-top: 15px">
-        <el-form :inline="true" :model="listQuery" size="small" label-width="140px">
-          <el-form-item label="商品名称：">
-            <el-input v-model="listQuery.productName" class="input-width" placeholder="商品名称"></el-input>
-          </el-form-item>
-          <el-form-item label="推荐状态：">
-            <el-select v-model="listQuery.recommendStatus" placeholder="全部" clearable class="input-width">
-              <el-option v-for="item in recommendOptions"
-                         :key="item.value"
-                         :label="item.label"
-                         :value="item.value">
-              </el-option>
-            </el-select>
-          </el-form-item>
-        </el-form>
-      </div>
-    </el-card>
-    <el-card class="operate-container" shadow="never">
-      <i class="el-icon-tickets"></i>
-      <span>数据列表</span>
-      <el-button size="mini" class="btn-add" @click="handleSelectProduct()">选择商品</el-button>
-    </el-card>
-    <div class="table-container">
-      <el-table ref="newProductTable"
-                :data="list"
-                style="width: 100%;"
-                @selection-change="handleSelectionChange"
-                v-loading="listLoading" border>
-        <el-table-column type="selection" width="60" align="center"></el-table-column>
-        <el-table-column label="编号" width="120" align="center">
-          <template slot-scope="scope">{{scope.row.id}}</template>
-        </el-table-column>
-        <el-table-column label="商品名称" align="center">
-          <template slot-scope="scope">{{scope.row.productName}}</template>
-        </el-table-column>
-        <el-table-column label="是否推荐" width="200" align="center">
-          <template slot-scope="scope">
-            <el-switch
-              @change="handleRecommendStatusStatusChange(scope.$index, scope.row)"
-              :active-value="1"
-              :inactive-value="0"
-              v-model="scope.row.recommendStatus">
-            </el-switch>
-          </template>
-        </el-table-column>
-        <el-table-column label="排序" width="160" align="center">
-          <template slot-scope="scope">{{scope.row.sort}}</template>
-        </el-table-column>
-        <el-table-column label="状态" width="160" align="center">
-          <template slot-scope="scope">{{scope.row.recommendStatus | formatRecommendStatus}}</template>
-        </el-table-column>
-        <el-table-column label="操作" width="180" align="center">
-          <template slot-scope="scope">
-            <el-button size="mini"
-                       type="text"
-                       @click="handleEditSort(scope.$index, scope.row)">设置排序
-            </el-button>
-            <el-button size="mini"
-                       type="text"
-                       @click="handleDelete(scope.$index, scope.row)">删除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+<template>
+  <div>
+    <h2>NEO Customs clearance Update</h2>
+
+    <!-- 操作按钮 -->
+    <div class="button-group">
+      <button @click="openNoteDialog">新增和更新<br><small>Add / Update</small></button>
+      <button @click="refreshData">刷新<br><small>Refresh</small></button>
+      <button @click="triggerPdfUpload">上传附件<br><small>Upload PDF</small></button>
+
+      <!-- 隐藏的上传输入框 -->
+      <input type="file" ref="fileInput" hidden @change="handleFileUpload" />
+      <input type="file" ref="pdfInput" hidden accept="application/pdf" @change="handlePdfUpload" />
     </div>
-    <div class="batch-operate-container">
-      <el-select
-        size="small"
-        v-model="operateType" placeholder="批量操作">
-        <el-option
-          v-for="item in operates"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value">
-        </el-option>
-      </el-select>
-      <el-button
-        style="margin-left: 20px"
-        class="search-button"
-        @click="handleBatchOperate()"
-        type="primary"
-        size="small">
-        确定
-      </el-button>
-    </div>
-    <div class="pagination-container">
-      <el-pagination
-        background
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-        layout="total, sizes,prev, pager, next,jumper"
-        :page-size="listQuery.pageSize"
-        :page-sizes="[5,10,15]"
-        :current-page.sync="listQuery.pageNum"
-        :total="total">
-      </el-pagination>
-    </div>
-    <el-dialog title="选择商品" :visible.sync="selectDialogVisible" width="50%">
-      <el-input v-model="dialogData.listQuery.keyword"
-                style="width: 250px;margin-bottom: 20px"
-                size="small"
-                placeholder="商品名称搜索">
-        <el-button slot="append" icon="el-icon-search" @click="handleSelectSearch()"></el-button>
-      </el-input>
-      <el-table :data="dialogData.list"
-                @selection-change="handleDialogSelectionChange" border>
-        <el-table-column type="selection" width="60" align="center"></el-table-column>
-        <el-table-column label="商品名称" align="center">
-          <template slot-scope="scope">{{scope.row.name}}</template>
-        </el-table-column>
-        <el-table-column label="货号" width="160" align="center">
-          <template slot-scope="scope">NO.{{scope.row.productSn}}</template>
-        </el-table-column>
-        <el-table-column label="价格" width="120" align="center">
-          <template slot-scope="scope">￥{{scope.row.price}}</template>
-        </el-table-column>
-      </el-table>
-      <div class="pagination-container">
-        <el-pagination
-          background
-          @size-change="handleDialogSizeChange"
-          @current-change="handleDialogCurrentChange"
-          layout="prev, pager, next"
-          :current-page.sync="dialogData.listQuery.pageNum"
-          :page-size="dialogData.listQuery.pageSize"
-          :page-sizes="[5,10,15]"
-          :total="dialogData.total">
-        </el-pagination>
-      </div>
-      <div style="clear: both;"></div>
-      <div slot="footer">
-        <el-button  size="small" @click="selectDialogVisible = false">取 消</el-button>
-        <el-button  size="small" type="primary" @click="handleSelectDialogConfirm()">确 定</el-button>
-      </div>
-    </el-dialog>
-    <el-dialog title="设置排序"
-               :visible.sync="sortDialogVisible"
-               width="40%">
-      <el-form :model="sortDialogData"
-               label-width="150px">
-        <el-form-item label="排序：">
-          <el-input v-model="sortDialogData.sort" style="width: 200px"></el-input>
-        </el-form-item>
-      </el-form>
-      <span slot="footer">
-        <el-button @click="sortDialogVisible = false" size="small">取 消</el-button>
-        <el-button type="primary" @click="handleUpdateSort" size="small">确 定</el-button>
+
+    <!-- 表格区域 -->
+    <table class="logistics-table" border="1">
+      <thead>
+        <tr>
+          <th><input type="checkbox" v-model="selectAll" @change="toggleSelectAll" /></th>
+          <th>最新轨迹<br><small>Latest Track</small></th>
+          <th>轨迹更新时间<br><small>Track Update Time</small></th>
+          <th>运单号<br><small>Waybill Number</small></th>
+          <th>客户单号<br><small>Customer Order No.</small></th>
+          <th>转运单号<br><small>Transit No.</small></th>
+          <th>柜号<br><small>Container No.</small></th>
+          <th>状态<br><small>Status</small></th>
+          <th>物流渠道名称<br><small>Logistics Channel</small></th>
+          <th>装柜港口<br><small>Loading Port</small></th>
+          <th>装柜时间<br><small>Loading Time</small></th>
+          <th>卸柜港口<br><small>Arrival Port</small></th>
+          <th>卸柜时间<br><small>Arrival Date</small></th>
+          <th>收件日期<br><small>Receive Date</small></th>
+          <th>收件时间<br><small>Receive Time</small></th>
+          <th>清关材料<br><small>Customs Docs</small></th>
+          <th>清关结果<br><small>Customs Clearance Result</small></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr v-for="logistics in logisticsList" :key="logistics.id">
+          <td><input type="checkbox" v-model="selectedItems" :value="logistics.id" /></td>
+          <td>{{ getValue(logistics.latestTrackNotes) }}</td>
+          <td>{{ formatTimestamp(logistics.trackUpdateTime) }}</td>
+          <td>{{ getValue(logistics.waybillNumber) }}</td>
+          <td>{{ getValue(logistics.customerOrderNumber) }}</td>
+          <td>{{ getValue(logistics.fwTrackingNumber) }}</td>
+          <td>{{ getValue(logistics.containerNumber) }}</td>
+          <td>{{ getValue(logistics.status) }}</td>
+          <td>{{ getValue(logistics.logisticsChannel) }}</td>
+          <td>{{ getValue(logistics.loadingPort) }}</td>
+          <td>{{ getValue(logistics.loadingTime) }}</td>
+          <td>{{ getValue(logistics.arrivalPort) }}</td>
+          <td>{{ getValue(logistics.arrivalDate) }}</td>
+          <td>{{ getValue(logistics.receiveDate) }}</td>
+          <td>{{ getValue(logistics.receiveTime) }}</td>
+          <td>
+            <template v-if="logistics.customsClearanceMaterials">
+              <a href="javascript:void(0)" @click="downloadFile(logistics.customsClearanceMaterials)">
+                {{ getFileName(logistics.customsClearanceMaterials) }}
+              </a>
+            </template>
+            <span v-else>未提供 / Not Provided</span>
+          </td>
+          <td>
+            <template v-if="logistics.customsClearanceResult">
+              <a href="javascript:void(0)" @click="downloadFile(logistics.customsClearanceResult)">
+                {{ getFileName(logistics.customsClearanceResult) }}
+              </a>
+            </template>
+            <span v-else>未提供 / Not Provided</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 填写最新轨迹的对话框 -->
+    <el-dialog title="填写最新轨迹" :visible.sync="noteDialogVisible">
+      <el-input
+        type="textarea"
+        v-model="noteInput"
+        placeholder="请输入最新轨迹 / Please enter the latest trajectory."
+        rows="4"
+      ></el-input>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="noteDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitNote">确认</el-button>
       </span>
     </el-dialog>
   </div>
 </template>
-<script>
-  import {fetchList,updateRecommendStatus,deleteNewProduct,createNewProduct,updateNewProductSort} from '@/api/newProduct';
-  import {fetchList as fetchProductList} from '@/api/product';
 
-  const defaultListQuery = {
-    pageNum: 1,
-    pageSize: 5,
-    productName: null,
-    recommendStatus: null
-  };
-  const defaultRecommendOptions = [
-    {
-      label: '未推荐',
-      value: 0
-    },
-    {
-      label: '推荐中',
-      value: 1
+<script>
+import axios from 'axios'
+import * as XLSX from 'xlsx'
+import { getToken } from '@/utils/auth'
+
+export default {
+  data() {
+    return {
+      logisticsList: [],
+      selectedItems: [],
+      selectAll: false,
+      noteDialogVisible: false,
+      noteInput: '',
     }
-  ];
-  export default {
-    name: 'newProductList',
-    data() {
-      return {
-        listQuery: Object.assign({}, defaultListQuery),
-        recommendOptions: Object.assign({}, defaultRecommendOptions),
-        list: null,
-        total: null,
-        listLoading: false,
-        multipleSelection: [],
-        operates: [
-          {
-            label: "设为推荐",
-            value: 0
-          },
-          {
-            label: "取消推荐",
-            value: 1
-          },
-          {
-            label: "删除",
-            value: 2
+  },
+  methods: {
+    getValue(value) {
+      return value || '未提供 / Not Provided';
+    },
+    getFileName(path) {
+      return path.split('/').pop();
+    },
+    formatTimestamp(timestamp) {
+      if (!timestamp) return '未提供 / Not Provided';
+      const date = new Date(timestamp);
+      return date.toLocaleString();
+    },
+    downloadFile(fileUrl) {
+      const token = getToken()
+      axios.get(fileUrl, {
+        headers: { Authorization: `${token}` },
+        responseType: 'blob',
+      }).then(response => {
+        const blob = new Blob([response.data])
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.setAttribute('download', this.getFileName(fileUrl))
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
+      }).catch(error => {
+        alert('下载失败：' + error.message)
+      })
+    },
+    fetchLogistics() {
+      const token = getToken()
+      axios.post('http://47.91.89.160:8080/cus/fetchAll', {}, {
+        headers: {
+          Authorization: `${token}`,
+        }
+      }).then(response => {
+        if (Array.isArray(response.data)) {
+          this.logisticsList = response.data
+        } else {
+          this.logisticsList = []
+        }
+      }).catch(error => {
+        alert('获取物流数据失败：' + error.message)
+      })
+    },
+    refreshData() {
+      this.fetchLogistics()
+    },
+    triggerFileUpload() {
+      this.$refs.fileInput.click()
+    },
+    triggerPdfUpload() {
+      if (this.selectedItems.length !== 1) {
+        alert('请选中一条物流记录再上传 PDF')
+        return
+      }
+      this.$refs.pdfInput.click()
+    },
+    handlePdfUpload(event) {
+      const file = event.target.files[0]
+      if (!file || !file.name.endsWith('.pdf')) {
+        alert('请上传 PDF 文件')
+        return
+      }
+
+      const selected = this.logisticsList.find(item => item.id === this.selectedItems[0])
+      if (!selected || !selected.containerNumber) {
+        alert('所选记录无柜号，无法上传')
+        return
+      }
+
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('containerNumber', selected.containerNumber)
+      const token = getToken()
+
+      axios.post('http://47.91.89.160:8080/cus/uploadFile', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `${token}`,
+        }
+      }).then(() => {
+        alert('上传成功')
+        this.refreshData()
+      }).catch(error => {
+        alert('上传失败：' + error.message)
+      })
+    },
+    handleFileUpload(event) {
+      const file = event.target.files[0]
+      if (!file || !file.name.endsWith('.xlsx')) {
+        alert('请上传 Excel 文件')
+        return
+      }
+
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const workbook = XLSX.read(e.target.result, { type: 'binary' })
+        const sheetName = workbook.SheetNames[0]
+        const worksheet = workbook.Sheets[sheetName]
+        const jsonData = XLSX.utils.sheet_to_json(worksheet)
+
+        const formatted = jsonData.map(row => ({
+          receiveDate: row['Receive Date'],
+          receiveTime: row['Receive Time'],
+          waybillNumber: row['Waybill Number'],
+          customerOrderNumber: row['Customer Order Number'],
+          fwTrackingNumber: row['Fw Tracking Number'],
+          containerNumber: row['Container Number'],
+          status: row['Status'],
+          logisticsChannel: row['Logistics Channel Name'],
+          loadingPort: row['Loading Port'],
+          loadingTime: row['Loading Time'],
+          arrivalPort: row['Arrive Port'],
+          arrivalDate: row['Arrive Date'],
+          latestTrackNotes: row['Latest Track Notes'],
+          trackUpdateTime: row['Track Update Time'],
+        }))
+
+        this.saveOrUpdateLogistics(formatted)
+      }
+      reader.readAsBinaryString(file)
+    },
+    saveOrUpdateLogistics(data) {
+      const token = getToken()
+      axios.post('http://47.91.89.160:8080/cus/saveOrUpdate', data, {
+        headers: {
+          Authorization: `${token}`,
+        }
+      }).then(() => {
+        alert('操作成功')
+        this.refreshData()
+      }).catch(error => {
+        alert('保存/更新失败：' + error.message)
+      })
+    },
+    toggleSelectAll() {
+      this.selectedItems = this.selectAll ? this.logisticsList.map(item => item.id) : []
+    },
+
+    // 打开轨迹弹窗
+    openNoteDialog() {
+      if (this.selectedItems.length === 0) {
+        alert('请先选择记录')
+        return
+      }
+      this.noteInput = ''
+      this.noteDialogVisible = true
+    },
+
+    // 提交轨迹
+    submitNote() {
+      const token = getToken()
+      const data = {
+        note: this.noteInput,
+        logisticsList: this.selectedItems.map(id => {
+          const item = this.logisticsList.find(l => l.id === id)
+          return {
+            waybillNumber: item.waybillNumber,
+            customerOrderNumber: item.customerOrderNumber,
+            fwTrackingNumber: item.fwTrackingNumber
           }
-        ],
-        operateType: null,
-        selectDialogVisible:false,
-        dialogData:{
-          list: null,
-          total: null,
-          multipleSelection:[],
-          listQuery:{
-            keyword: null,
-            pageNum: 1,
-            pageSize: 5
-          }
-        },
-        sortDialogVisible:false,
-        sortDialogData:{sort:0,id:null}
-      }
-    },
-    created() {
-      this.getList();
-    },
-    filters:{
-      formatRecommendStatus(status){
-        if(status===1){
-          return '推荐中';
-        }else{
-          return '未推荐';
-        }
-      }
-    },
-    methods: {
-      handleResetSearch() {
-        this.listQuery = Object.assign({}, defaultListQuery);
-      },
-      handleSearchList() {
-        this.listQuery.pageNum = 1;
-        this.getList();
-      },
-      handleSelectionChange(val){
-        this.multipleSelection = val;
-      },
-      handleSizeChange(val) {
-        this.listQuery.pageNum = 1;
-        this.listQuery.pageSize = val;
-        this.getList();
-      },
-      handleCurrentChange(val) {
-        this.listQuery.pageNum = val;
-        this.getList();
-      },
-      handleRecommendStatusStatusChange(index,row){
-        this.updateRecommendStatusStatus(row.id,row.recommendStatus);
-      },
-      handleDelete(index,row){
-        this.deleteProduct(row.id);
-      },
-      handleBatchOperate(){
-        if (this.multipleSelection < 1) {
-          this.$message({
-            message: '请选择一条记录',
-            type: 'warning',
-            duration: 1000
-          });
-          return;
-        }
-        let ids = [];
-        for (let i = 0; i < this.multipleSelection.length; i++) {
-          ids.push(this.multipleSelection[i].id);
-        }
-        if (this.operateType === 0) {
-          //设为推荐
-          this.updateRecommendStatusStatus(ids,1);
-        } else if (this.operateType === 1) {
-          //取消推荐
-          this.updateRecommendStatusStatus(ids,0);
-        } else if(this.operateType===2){
-          //删除
-          this.deleteProduct(ids);
-        }else {
-          this.$message({
-            message: '请选择批量操作类型',
-            type: 'warning',
-            duration: 1000
-          });
-        }
-      },
-      handleSelectProduct(){
-        this.selectDialogVisible=true;
-        this.getDialogList();
-      },
-      handleSelectSearch(){
-        this.getDialogList();
-      },
-      handleDialogSizeChange(val) {
-        this.dialogData.listQuery.pageNum = 1;
-        this.dialogData.listQuery.pageSize = val;
-        this.getDialogList();
-      },
-      handleDialogCurrentChange(val) {
-        this.dialogData.listQuery.pageNum = val;
-        this.getDialogList();
-      },
-      handleDialogSelectionChange(val){
-        this.dialogData.multipleSelection = val;
-      },
-      handleSelectDialogConfirm(){
-        if (this.dialogData.multipleSelection < 1) {
-          this.$message({
-            message: '请选择一条记录',
-            type: 'warning',
-            duration: 1000
-          });
-          return;
-        }
-        let selectProducts = [];
-        for (let i = 0; i < this.dialogData.multipleSelection.length; i++) {
-          selectProducts.push({
-            productId:this.dialogData.multipleSelection[i].id,
-            productName:this.dialogData.multipleSelection[i].name
-          });
-        }
-        this.$confirm('使用要进行添加操作?', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          createNewProduct(selectProducts).then(response=>{
-            this.selectDialogVisible=false;
-            this.dialogData.multipleSelection=[];
-            this.getList();
-            this.$message({
-              type: 'success',
-              message: '添加成功!'
-            });
-          });
-        });
-      },
-      handleEditSort(index,row){
-        this.sortDialogVisible=true;
-        this.sortDialogData.sort=row.sort;
-        this.sortDialogData.id=row.id;
-      },
-      handleUpdateSort(){
-        this.$confirm('是否要修改排序?', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          updateNewProductSort(this.sortDialogData).then(response=>{
-            this.sortDialogVisible=false;
-            this.getList();
-            this.$message({
-              type: 'success',
-              message: '删除成功!'
-            });
-          });
-        })
-      },
-      getList() {
-        this.listLoading = true;
-        fetchList(this.listQuery).then(response => {
-          this.listLoading = false;
-          this.list = response.data.list;
-          this.total = response.data.total;
-        })
-      },
-      updateRecommendStatusStatus(ids,status){
-        this.$confirm('是否要修改推荐状态?', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          let params=new URLSearchParams();
-          params.append("ids",ids);
-          params.append("recommendStatus",status);
-          updateRecommendStatus(params).then(response=>{
-            this.getList();
-            this.$message({
-              type: 'success',
-              message: '修改成功!'
-            });
-          });
-        }).catch(() => {
-          this.$message({
-            type: 'success',
-            message: '已取消操作!'
-          });
-          this.getList();
-        });
-      },
-      deleteProduct(ids){
-        this.$confirm('是否要删除该推荐?', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          let params=new URLSearchParams();
-          params.append("ids",ids);
-          deleteNewProduct(params).then(response=>{
-            this.getList();
-            this.$message({
-              type: 'success',
-              message: '删除成功!'
-            });
-          });
-        })
-      },
-      getDialogList(){
-        fetchProductList(this.dialogData.listQuery).then(response=>{
-          this.dialogData.list=response.data.list;
-          this.dialogData.total=response.data.total;
         })
       }
+
+      axios.post('http://47.91.89.160:8080/cus/updateLogisticsNote', data, {
+        headers: {
+          Authorization: `${token}`,
+        }
+      }).then(() => {
+        this.noteDialogVisible = false
+        alert('轨迹更新成功')
+        this.refreshData()
+      }).catch(err => {
+        alert('轨迹更新失败：' + (err.response.data || err.message))
+      })
     }
+  },
+  mounted() {
+    this.refreshData()
   }
+}
 </script>
-<style></style>
+
+
+
+<style scoped>
+body {
+  font-size: 14px;
+}
+
+/* 表格样式 */
+.logistics-table {
+  width: 100%;
+  margin-top: 20px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.logistics-table th,
+.logistics-table td {
+  padding: 8px;
+  text-align: center;
+  border: 1px solid #ddd;
+}
+
+.logistics-table th small {
+  display: block;
+  font-size: 11px;
+  color: #888;
+  margin-top: 4px;
+}
+
+/* 按钮样式 */
+.button-group {
+  margin-bottom: 15px;
+}
+
+button {
+  margin: 5px;
+  padding: 8px 15px;
+  background-color: #409eff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  transition: background-color 0.3s;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #66b1ff;
+}
+</style>

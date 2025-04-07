@@ -1,14 +1,14 @@
 <template>
   <div>
-    <h2>物流信息管理</h2>
+    <h2>NEO Customs clearance tracking system</h2>
 
     <!-- 操作按钮 -->
     <div class="button-group">
-      <button @click="triggerFileUpload">新增和更新</button>
-      <button @click="deleteSelected">删除</button>
-      <button @click="refreshData">刷新</button>
-      <button @click="downloadExample">下载示例</button>
-      <button @click="triggerPdfUpload">上传附件</button>
+      <button @click="triggerFileUpload">新增和更新<br><small>Add / Update</small></button>
+      <button @click="deleteSelected">删除<br><small>Delete</small></button>
+      <button @click="refreshData">刷新<br><small>Refresh</small></button>
+      <button @click="downloadExample">下载示例<br><small>Download Example</small></button>
+      <button @click="triggerPdfUpload">上传附件<br><small>Upload PDF</small></button>
 
       <!-- 隐藏的上传输入框 -->
       <input type="file" ref="fileInput" hidden @change="handleFileUpload" />
@@ -35,6 +35,7 @@
           <th>收件日期<br><small>Receive Date</small></th>
           <th>收件时间<br><small>Receive Time</small></th>
           <th>清关材料<br><small>Customs Docs</small></th>
+          <th>清关结果<br><small>Customs Clearance Result</small></th>
         </tr>
       </thead>
 
@@ -63,8 +64,17 @@
                 {{ getFileName(logistics.customsClearanceMaterials) }}
               </a>
             </template>
-            <span v-else>未提供</span>
+            <span v-else>未提供 / Not Provided</span>
           </td>
+
+          <td>
+                      <template v-if="logistics.customsClearanceResult">
+                        <a href="javascript:void(0)" @click="downloadFile(logistics.customsClearanceResult)">
+                          {{ getFileName(logistics.customsClearanceResult) }}
+                        </a>
+                      </template>
+                      <span v-else>未提供 / Not Provided</span>
+                    </td>
         </tr>
       </tbody>
     </table>
@@ -88,13 +98,13 @@ export default {
   },
   methods: {
     getValue(value) {
-      return value || '未提供';
+      return value || '未提供 / Not Provided';
     },
     getFileName(path) {
       return path.split('/').pop();
     },
       formatTimestamp(timestamp) {
-        if (!timestamp) return '未提供';
+        if (!timestamp) return '未提供 / Not Provided';
         const date = new Date(timestamp);
         return date.toLocaleString(); // 返回格式如 "2025/4/5 上午10:00:00"
       },
@@ -139,7 +149,7 @@ export default {
 
             } catch (error) {
               console.error("文件下载失败:", error);
-              alert(`下载失败：${error.response.data.message || error.message}`);
+              alert(`下载失败：${error.response.data.message || error.message}\nDownload failed: ${error.response.data.message || error.message}`)
             }
           },
     // 获取所有物流信息
@@ -168,13 +178,13 @@ export default {
           if (error.response) {
             console.log("请求头:", error.response.config.headers);
             console.error("后端错误信息:", error.response);
-            alert("后端错误信息：" + error.response.data);
+            alert("后端错误信息 / Backend Error:\n" + error.response.data);
           } else if (error.message) {
             console.error("请求错误信息:", error.message);
-            alert("请求错误信息：" + error.message);
+            alert("请求错误信息 / Request Error:\n" + error.message);
           } else {
             console.error("未知错误:", error);
-            alert("未知错误:" + JSON.stringify(error));
+            alert("未知错误 / Unknown Error:\n" + JSON.stringify(error));
           }
         });
     },
@@ -188,7 +198,7 @@ export default {
         handleFileUpload(event) {
           const file = event.target.files[0]
           if (!file || !file.name.endsWith('.xlsx')) {
-            alert('请上传有效的 Excel 文件')
+            alert('请上传有效的 Excel 文件\nPlease upload a valid Excel file')
             return
           }
 
@@ -235,18 +245,18 @@ export default {
           'Authorization': `${token}`,
         }
       }).then(response => {
-        alert('操作成功')
+        alert('操作成功\nOperation Successful')
         this.refreshData() // 刷新数据
       }).catch(error => {
         console.error("保存/更新物流记录失败", error)
-        alert("保存/更新失败")
+        alert("保存/更新失败\nSave/Update Failed")
       })
     },
 
     // 触发 PDF 上传
         triggerPdfUpload() {
           if (this.selectedItems.length !== 1) {
-            alert('请先选中一条物流记录，再上传附件')
+            alert('请先选中一条物流记录，再上传附件。\nPlease select one logistics record before uploading the attachment.')
             return
           }
           this.$refs.pdfInput.click()
@@ -256,14 +266,14 @@ export default {
         handlePdfUpload(event) {
           const file = event.target.files[0]
           if (!file || !file.name.endsWith('.pdf')) {
-            alert('请上传 PDF 文件')
+            alert('请上传 PDF 文件\nPlease upload a PDF file')
             return
           }
 
           // 获取选中物流记录的柜号
           const selectedLogistics = this.logisticsList.find(item => item.id === this.selectedItems[0])
           if (!selectedLogistics || !selectedLogistics.containerNumber) {
-            alert('所选记录无柜号，无法上传')
+            alert('所选记录无柜号，无法上传\nSelected record has no container number, cannot upload.')
             return
           }
 
@@ -283,18 +293,19 @@ export default {
               'Authorization': `${token}`,
             }
           }).then(response => {
-            alert('附件上传成功！')
+            alert('附件上传成功！\nAttachment uploaded successfully!')
             this.refreshData()
           }).catch(error => {
             console.error("附件上传失败", error)
-            alert("附件上传失败：" + (error.response.data || error.message))
+            alert("附件上传失败：" + (error.response.data || error.message) + "\nAttachment upload failed.");
+
           })
         },
 
     // 删除选中的物流记录
     deleteSelected() {
       if (this.selectedItems.length === 0) {
-        alert('请选择要删除的记录')
+        alert('请选择要删除的记录\nPlease select records to delete')
         return
       }
 
@@ -319,7 +330,7 @@ export default {
         this.refreshData()
       }).catch(error => {
         console.error("删除物流记录失败", error)
-        alert("删除失败")
+        alert("删除失败\nDelete failed")
       })
     },
 

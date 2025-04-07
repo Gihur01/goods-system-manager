@@ -30,7 +30,7 @@ export const constantRouterMap = [
       path: 'home',
       name: 'home',
       component: () => import('@/views/home/index'),
-      meta: {title: '仪表盘', icon: 'dashboard'}
+      meta: {title: '首页', icon: 'dashboard'},
     },
     ]
   }
@@ -144,9 +144,9 @@ export const asyncRouterMap = [
         component: () => import('@/views/oms/order/index'),
         meta: {title: '订单列表', icon: 'product-list'}
       },
-      
-      //this is a duplicate of oms/index, intended for warehouse to look 
-       {   
+
+      //this is a duplicate of oms/index, intended for warehouse to look
+       {
         path: 'prepareProduct',
         name: 'prepareProduct',
         component: () => import('@/views/oms/order/prepareProduct'),
@@ -370,6 +370,8 @@ export const asyncRouterMap = [
   },
   {path: '*', redirect: '/404', hidden: true}
 ]
+
+
 
 export default new Router({
   // mode: 'history', //后端支持可开

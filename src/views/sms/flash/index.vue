@@ -2,56 +2,69 @@
   <div>
     <h2>物流信息管理</h2>
 
-    <!-- 按钮区域 -->
-    <div>
+    <!-- 操作按钮 -->
+    <div class="button-group">
       <button @click="triggerFileUpload">新增和更新</button>
       <button @click="deleteSelected">删除</button>
       <button @click="refreshData">刷新</button>
       <button @click="downloadExample">下载示例</button>
-      <button @click="triggerPdfUpload">上传附件</button> <!-- 新增按钮 -->
+      <button @click="triggerPdfUpload">上传附件</button>
 
-      <input type="file" ref="fileInput" style="display: none;" @change="handleFileUpload" />
-      <input type="file" ref="pdfInput" style="display: none;" accept="application/pdf" @change="handlePdfUpload" />
+      <!-- 隐藏的上传输入框 -->
+      <input type="file" ref="fileInput" hidden @change="handleFileUpload" />
+      <input type="file" ref="pdfInput" hidden accept="application/pdf" @change="handlePdfUpload" />
     </div>
 
     <!-- 表格区域 -->
-    <table id="logistics-table" border="1">
+    <table class="logistics-table" border="1">
       <thead>
         <tr>
           <th><input type="checkbox" v-model="selectAll" @change="toggleSelectAll" /></th>
-          <th>收件日期</th>
-          <th>收件时间</th>
-          <th>运单号</th>
-          <th>客户单号</th>
-          <th>转运单号</th>
-          <th>柜号</th>
-          <th>状态</th>
-          <th>物流渠道名称</th>
-          <th>装柜港口</th>
-          <th>装柜时间</th>
-          <th>卸柜港口</th>
-          <th>卸柜时间</th>
-          <th>最新轨迹</th>
-          <th>轨迹更新时间</th>
+          <th>最新轨迹<br><small>Latest Track</small></th>
+          <th>轨迹更新时间<br><small>Track Update Time</small></th>
+          <th>运单号<br><small>Waybill Number</small></th>
+          <th>客户单号<br><small>Customer Order No.</small></th>
+          <th>转运单号<br><small>Transit No.</small></th>
+          <th>柜号<br><small>Container No.</small></th>
+          <th>状态<br><small>Status</small></th>
+          <th>物流渠道名称<br><small>Logistics Channel</small></th>
+          <th>装柜港口<br><small>Loading Port</small></th>
+          <th>装柜时间<br><small>Loading Time</small></th>
+          <th>卸柜港口<br><small>Arrival Port</small></th>
+          <th>卸柜时间<br><small>Arrival Date</small></th>
+          <th>收件日期<br><small>Receive Date</small></th>
+          <th>收件时间<br><small>Receive Time</small></th>
+          <th>清关材料<br><small>Customs Docs</small></th>
         </tr>
       </thead>
+
       <tbody>
         <tr v-for="logistics in logisticsList" :key="logistics.id">
           <td><input type="checkbox" v-model="selectedItems" :value="logistics.id" /></td>
-          <td>{{ logistics.receiveDate || '未提供' }}</td>
-          <td>{{ logistics.receiveTime || '未提供' }}</td>
-          <td>{{ logistics.waybillNumber || '未提供' }}</td>
-          <td>{{ logistics.customerOrderNumber || '未提供' }}</td>
-          <td>{{ logistics.fwTrackingNumber || '未提供' }}</td>
-          <td>{{ logistics.containerNumber || '未提供' }}</td>
-          <td>{{ logistics.status || '未提供' }}</td>
-          <td>{{ logistics.logisticsChannel || '未提供' }}</td>
-          <td>{{ logistics.loadingPort || '未提供' }}</td>
-          <td>{{ logistics.loadingTime || '未提供' }}</td>
-          <td>{{ logistics.arrivalPort || '未提供' }}</td>
-          <td>{{ logistics.arrivalDate || '未提供' }}</td>
-          <td>{{ logistics.latestTrackNotes || '未提供' }}</td>
-          <td>{{ logistics.trackUpdateTime ? logistics.trackUpdateTime : '未提供' }}</td>
+
+          <td>{{ getValue(logistics.latestTrackNotes) }}</td>
+          <td>{{ formatTimestamp(logistics.trackUpdateTime) }}</td>
+          <td>{{ getValue(logistics.waybillNumber) }}</td>
+          <td>{{ getValue(logistics.customerOrderNumber) }}</td>
+          <td>{{ getValue(logistics.fwTrackingNumber) }}</td>
+          <td>{{ getValue(logistics.containerNumber) }}</td>
+          <td>{{ getValue(logistics.status) }}</td>
+          <td>{{ getValue(logistics.logisticsChannel) }}</td>
+          <td>{{ getValue(logistics.loadingPort) }}</td>
+          <td>{{ getValue(logistics.loadingTime) }}</td>
+          <td>{{ getValue(logistics.arrivalPort) }}</td>
+          <td>{{ getValue(logistics.arrivalDate) }}</td>
+          <td>{{ getValue(logistics.receiveDate) }}</td>
+          <td>{{ getValue(logistics.receiveTime) }}</td>
+
+          <td>
+            <template v-if="logistics.customsClearanceMaterials">
+              <a href="javascript:void(0)" @click="downloadFile(logistics.customsClearanceMaterials)">
+                {{ getFileName(logistics.customsClearanceMaterials) }}
+              </a>
+            </template>
+            <span v-else>未提供</span>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -59,9 +72,11 @@
 </template>
 
 
+
 <script>
 import axios from 'axios'
 import * as XLSX from 'xlsx'
+import { getToken } from '@/utils/auth'
 
 export default {
   data() {
@@ -72,14 +87,69 @@ export default {
     }
   },
   methods: {
+    getValue(value) {
+      return value || '未提供';
+    },
+    getFileName(path) {
+      return path.split('/').pop();
+    },
+      formatTimestamp(timestamp) {
+        if (!timestamp) return '未提供';
+        const date = new Date(timestamp);
+        return date.toLocaleString(); // 返回格式如 "2025/4/5 上午10:00:00"
+      },
+    async downloadFile(fileUrl) {
+      const token = getToken()
+            try {
+              console.log("开始下载文件:", fileUrl); // 调试，确保文件 URL 正确传递
+
+              const response = await axios.get(fileUrl, {
+                headers: { Authorization: `${token}` }, // 如果需要 Token，请确保已正确传递
+                responseType: 'blob', // 以 Blob 形式获取文件
+              });
+
+              // 确保后端返回的数据是有效的文件
+              if (!response.data) {
+                throw new Error("后端没有返回文件内容");
+              }
+
+              // 获取文件名（可以从 URL 或响应头中获取）
+              let downloadFileName = fileUrl.split('/').pop();  // 从 URL 获取文件名
+              const contentDisposition = response.headers['content-disposition'];
+              if (contentDisposition) {
+                const matches = contentDisposition.match(/filename="(.+)"/);
+                if (matches && matches[1]) {
+                  downloadFileName = decodeURIComponent(matches[1]);
+                }
+              }
+
+              // 创建下载链接
+              const url = window.URL.createObjectURL(new Blob([response.data]));
+              const link = document.createElement('a');
+              link.href = url;
+              link.setAttribute('download', downloadFileName); // 设置下载的文件名
+
+              // 触发下载
+              document.body.appendChild(link);
+              link.click();
+
+              // 清理资源
+              document.body.removeChild(link);
+              window.URL.revokeObjectURL(url); // 释放临时 URL
+
+            } catch (error) {
+              console.error("文件下载失败:", error);
+              alert(`下载失败：${error.response.data.message || error.message}`);
+            }
+          },
     // 获取所有物流信息
     fetchLogistics() {
       // 写死的 token
-      const token = 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImNyZWF0ZWQiOjE3NDMxNTEzOTQyODMsImV4cCI6MTc0Mzc1NjE5NH0.EsxXoq4vfaVlI5o-ouHxQoz5Ui1KaGrl2JDOhnvvRydA1in5MNOp0B4tRvYOps2VuqxS9G-X15XOTzutF0UYEg'
+      const token = getToken()
       // 发送请求获取物流信息
-      axios.post('http://localhost:8080/cus/fetchAll', {}, {
+      axios.post('http://47.91.89.160:8080/cus/fetchAll', {}, {
         headers: {
-          'Authorization': `Bearer ${token}`,  // 在请求头中加上 token
+          'Authorization': `${token}`,  // 在请求头中加上 token
         }
       })
         .then(response => {
@@ -159,10 +229,10 @@ export default {
 
     // 调用接口保存/更新物流记录
     saveOrUpdateLogistics(data) {
-      const token = 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImNyZWF0ZWQiOjE3NDMxNTEzOTQyODMsImV4cCI6MTc0Mzc1NjE5NH0.EsxXoq4vfaVlI5o-ouHxQoz5Ui1KaGrl2JDOhnvvRydA1in5MNOp0B4tRvYOps2VuqxS9G-X15XOTzutF0UYEg'
-      axios.post('http://localhost:8080/cus/saveOrUpdate', data, {
+      const token = getToken()
+           axios.post('http://47.91.89.160:8080/cus/saveOrUpdate', data, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `${token}`,
         }
       }).then(response => {
         alert('操作成功')
@@ -206,12 +276,11 @@ export default {
           const formData = new FormData()
           formData.append('file', file)
           formData.append('containerNumber', containerNumber)
-      const token = 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImNyZWF0ZWQiOjE3NDMxNTEzOTQyODMsImV4cCI6MTc0Mzc1NjE5NH0.EsxXoq4vfaVlI5o-ouHxQoz5Ui1KaGrl2JDOhnvvRydA1in5MNOp0B4tRvYOps2VuqxS9G-X15XOTzutF0UYEg'
-
-          axios.post('http://localhost:8080/cus/uploadFile', formData, {
+      const token = getToken()
+          axios.post('http://47.91.89.160:8080/cus/uploadFile', formData, {
             headers: {
               'Content-Type': 'multipart/form-data',
-              'Authorization': `Bearer ${token}`,
+              'Authorization': `${token}`,
             }
           }).then(response => {
             alert('附件上传成功！')
@@ -240,10 +309,10 @@ export default {
       })
 
       // 发送删除请求
-      const token = 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImNyZWF0ZWQiOjE3NDMxNTEzOTQyODMsImV4cCI6MTc0Mzc1NjE5NH0.EsxXoq4vfaVlI5o-ouHxQoz5Ui1KaGrl2JDOhnvvRydA1in5MNOp0B4tRvYOps2VuqxS9G-X15XOTzutF0UYEg'
-      axios.post('http://localhost:8080/cus/removeLogistics', logisticsListToDelete, {
+      const token = getToken()
+      axios.post('http://47.91.89.160:8080/cus/removeLogistics', logisticsListToDelete, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `${token}`,
         }
       }).then(response => {
         alert(response.data)
@@ -289,27 +358,50 @@ export default {
 </script>
 
 <style scoped>
-table {
-  width: 100%;
-  margin-bottom: 20px;
-  border-collapse: collapse;
+body {
+  font-size: 14px;
 }
 
-table th, table td {
-  padding: 10px;
+/* 表格样式 */
+.logistics-table {
+  width: 100%;
+  margin-top: 20px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.logistics-table th,
+.logistics-table td {
+  padding: 8px;
   text-align: center;
+  border: 1px solid #ddd;
+}
+
+.logistics-table th small {
+  display: block;
+  font-size: 11px;
+  color: #888;
+  margin-top: 4px;
+}
+
+/* 按钮样式 */
+.button-group {
+  margin-bottom: 15px;
 }
 
 button {
   margin: 5px;
-  padding: 10px;
-  background-color: #4CAF50;
-  color: white;
+  padding: 8px 15px;
+  background-color: #409eff;
+  color: #fff;
   border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  transition: background-color 0.3s;
   cursor: pointer;
 }
 
 button:hover {
-  background-color: #45a049;
+  background-color: #66b1ff;
 }
 </style>

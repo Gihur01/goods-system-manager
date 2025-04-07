@@ -1,14 +1,17 @@
 <template>
   <div>
-    <h2>NEO Customs clearance tracking system</h2>
+  <h2>{{ language === 'zh' ? 'NEO 清关跟踪系统' : 'NEO Customs clearance tracking system' }}</h2>
 
     <!-- 操作按钮 -->
     <div class="button-group">
-      <button @click="triggerFileUpload">新增和更新<br><small>Add / Update</small></button>
-      <button @click="deleteSelected">删除<br><small>Delete</small></button>
-      <button @click="refreshData">刷新<br><small>Refresh</small></button>
-      <button @click="downloadExample">下载示例<br><small>Download Example</small></button>
-      <button @click="triggerPdfUpload">上传附件<br><small>Upload PDF</small></button>
+      <button @click="triggerFileUpload">{{ language === 'zh' ? '新增和更新' : 'Add / Update' }}</button>
+      <button @click="deleteSelected">{{ language === 'zh' ? '删除' : 'Delete' }}</button>
+      <button @click="refreshData">{{ language === 'zh' ? '刷新' : 'Refresh' }}</button>
+      <button @click="downloadExample">{{ language === 'zh' ? '下载示例' : 'Download Example' }}</button>
+      <button @click="triggerPdfUpload">{{ language === 'zh' ? '上传附件' : 'Upload PDF' }}</button>
+            <button @click="toggleLanguage" class="language-toggle-btn">
+                  {{ language === 'zh' ? '切换到英文' : 'Switch to Chinese' }}
+            </button>
 
       <!-- 隐藏的上传输入框 -->
       <input type="file" ref="fileInput" hidden @change="handleFileUpload" />
@@ -20,22 +23,22 @@
       <thead>
         <tr>
           <th><input type="checkbox" v-model="selectAll" @change="toggleSelectAll" /></th>
-          <th>最新轨迹<br><small>Latest Track</small></th>
-          <th>轨迹更新时间<br><small>Track Update Time</small></th>
-          <th>运单号<br><small>Waybill Number</small></th>
-          <th>客户单号<br><small>Customer Order No.</small></th>
-          <th>转运单号<br><small>Transit No.</small></th>
-          <th>柜号<br><small>Container No.</small></th>
-          <th>状态<br><small>Status</small></th>
-          <th>物流渠道名称<br><small>Logistics Channel</small></th>
-          <th>装柜港口<br><small>Loading Port</small></th>
-          <th>装柜时间<br><small>Loading Time</small></th>
-          <th>卸柜港口<br><small>Arrival Port</small></th>
-          <th>卸柜时间<br><small>Arrival Date</small></th>
-          <th>收件日期<br><small>Receive Date</small></th>
-          <th>收件时间<br><small>Receive Time</small></th>
-          <th>清关材料<br><small>Customs Docs</small></th>
-          <th>清关结果<br><small>Customs Clearance Result</small></th>
+          <th>{{ language === 'zh' ? '最新轨迹' : 'Latest Track' }}</th>
+          <th>{{ language === 'zh' ? '轨迹更新时间' : 'Track Update Time' }}</th>
+          <th>{{ language === 'zh' ? '运单号' : 'Waybill Number' }}</th>
+          <th>{{ language === 'zh' ? '客户单号' : 'Customer Order No.' }}</th>
+          <th>{{ language === 'zh' ? '转运单号' : 'Transit No.' }}</th>
+          <th>{{ language === 'zh' ? '柜号' : 'Container No.' }}</th>
+          <th>{{ language === 'zh' ? '状态' : 'Status' }}</th>
+          <th>{{ language === 'zh' ? '物流渠道名称' : 'Logistics Channel' }}</th>
+          <th>{{ language === 'zh' ? '装柜港口' : 'Loading Port' }}</th>
+          <th>{{ language === 'zh' ? '装柜时间' : 'Loading Time' }}</th>
+          <th>{{ language === 'zh' ? '卸柜港口' : 'Arrival Port' }}</th>
+          <th>{{ language === 'zh' ? '卸柜时间' : 'Arrival Date' }}</th>
+          <th>{{ language === 'zh' ? '收件日期' : 'Receive Date' }}</th>
+          <th>{{ language === 'zh' ? '收件时间' : 'Receive Time' }}</th>
+          <th>{{ language === 'zh' ? '清关材料' : 'Customs Docs' }}</th>
+          <th>{{ language === 'zh' ? '清关结果' : 'Customs Clearance Result' }}</th>
         </tr>
       </thead>
 
@@ -91,12 +94,16 @@ import { getToken } from '@/utils/auth'
 export default {
   data() {
     return {
+          language: 'en',
       logisticsList: [], // 物流数据
       selectedItems: [], // 选中的物流记录ID
       selectAll: false, // 全选状态
     }
   },
   methods: {
+      toggleLanguage() {
+          this.language = this.language === 'zh' ? 'en' : 'zh';
+        },
     getValue(value) {
       return value || '未提供 / Not Provided';
     },

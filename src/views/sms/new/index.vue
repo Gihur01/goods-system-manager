@@ -7,7 +7,7 @@
       <button @click="openNoteDialog">新增和更新<br><small>Add / Update</small></button>
       <button @click="refreshData">刷新<br><small>Refresh</small></button>
       <button @click="triggerPdfUpload">上传附件<br><small>Upload PDF</small></button>
-
+      <button @click="openDetailDialog">详细信息<br><small>Details</small></button>
       <!-- 隐藏的上传输入框 -->
       <input type="file" ref="fileInput" hidden @change="handleFileUpload" />
       <input type="file" ref="pdfInput" hidden accept="application/pdf" @change="handlePdfUpload" />
@@ -87,6 +87,19 @@
         <el-button type="primary" @click="submitNote">确认</el-button>
       </span>
     </el-dialog>
+
+    <el-dialog title="物流详细信息" :visible.sync="detailDialogVisible" width="600px">
+          <div v-if="logisticsDetail">
+            <div v-for="(value, key) in logisticsDetail" :key="key" class="detail-item">
+              <strong>{{ key }}:</strong> {{ value || '—' }}
+            </div>
+          </div>
+          <div v-else>加载中...</div>
+          <template #footer>
+            <el-button @click="detailDialogVisible = false">关闭</el-button>
+          </template>
+        </el-dialog>
+
   </div>
 </template>
 
@@ -102,7 +115,9 @@ export default {
       selectedItems: [],
       selectAll: false,
       noteDialogVisible: false,
-      noteInput: '',
+      noteText: '',
+      detailDialogVisible: false,
+      logisticsDetail: null
     }
   },
   methods: {
@@ -117,6 +132,28 @@ export default {
       const date = new Date(timestamp);
       return date.toLocaleString();
     },
+    openDetailDialog() {
+          if (this.selectedItems.length !== 1) {
+            alert('请只选择一条记录查看详细信息');
+            return;
+          }
+          const selected = this.logisticsList.find(i => i.id === this.selectedItems[0]);
+          if (!selected) return;
+          this.detailDialogVisible = true;
+          this.logisticsDetail = null;
+          axios.post('http://47.91.89.160:8080/cus/query', {
+            waybillNumber: selected.waybillNumber,
+            customerOrderNumber: selected.customerOrderNumber,
+            fwTrackingNumber: selected.fwTrackingNumber
+          }, {
+            headers: { Authorization: getToken() }
+          }).then(res => {
+            this.logisticsDetail = res.data;
+          }).catch(err => {
+            alert('查询失败: ' + (err.response.data || err.message));
+            this.detailDialogVisible = false;
+          });
+        },
     downloadFile(fileUrl) {
       const token = getToken()
       axios.get(fileUrl, {

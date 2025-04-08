@@ -15,7 +15,7 @@
                     type="text"
                     v-model="loginForm.username"
                     autoComplete="on"
-                    placeholder="请输入用户名">
+                    placeholder="Type in User Name Please">
           <span slot="prefix">
             <svg-icon icon-class="user" class="color-main"></svg-icon>
           </span>
@@ -27,7 +27,7 @@
                     @keyup.enter.native="handleLogin"
                     v-model="loginForm.password"
                     autoComplete="on"
-                    placeholder="请输入密码">
+                    placeholder="Type in Password Please">
           <span slot="prefix">
             <svg-icon icon-class="password" class="color-main"></svg-icon>
           </span>
@@ -38,7 +38,7 @@
         </el-form-item>
         <el-form-item style="margin-bottom: 60px;text-align: center">
           <el-button style="width: 45%" type="primary" :loading="loading" @click.native.prevent="handleLogin">
-            登录
+            Login
           </el-button>
         </el-form-item>
       </el-form>
@@ -57,14 +57,14 @@
     data() {
       const validateUsername = (rule, value, callback) => {
         if (!isvalidUsername(value)) {
-          callback(new Error('请输入正确的用户名'))
+          callback(new Error('User Name Incorrect!'))
         } else {
           callback()
         }
       };
       const validatePass = (rule, value, callback) => {
         if (value.length < 3) {
-          callback(new Error('密码不能小于3位'))
+          callback(new Error('password must be more than 3 digits'))
         } else {
           callback()
         }
@@ -123,7 +123,7 @@
               this.loading = false
             })
           } else {
-            console.log('参数验证不合法！');
+            console.log('The parameter validation is invalid！');
             return false
           }
         })

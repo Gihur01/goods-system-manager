@@ -10,7 +10,7 @@
       <el-dropdown-menu class="user-dropdown" slot="dropdown">
 
         <el-dropdown-item divided>
-          <span @click="logout" style="display:block;">退出</span>
+          <span @click="logout" style="display:block;">Logout</span>
         </el-dropdown-item>
       </el-dropdown-menu>
     </el-dropdown>

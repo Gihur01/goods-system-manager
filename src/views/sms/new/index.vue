@@ -6,14 +6,14 @@
     <div class="button-group">
       <button @click="openNoteDialog">{{ language === 'zh' ? '轨迹更新' : 'Trajectory update' }}</button>
       <button @click="refreshData">{{ language === 'zh' ? '刷新' : 'Refresh' }}</button>
-      <button @click="triggerPdfUpload">{{ language === 'zh' ? '上传附件' : 'Upload PDF' }}</button>
+      <button @click="triggerExcelUpload">{{ language === 'zh' ? '上传附件' : 'Upload Excel' }}</button>
       <button @click="openDetailDialog">{{ language === 'zh' ? '详细信息' : 'Details' }}</button>
       <button @click="toggleLanguage" class="language-toggle-btn">
             {{ language === 'zh' ? '切换到英文' : 'Switch to Chinese' }}
       </button>
       <!-- 隐藏的上传输入框 -->
       <input type="file" ref="fileInput" hidden @change="handleFileUpload" />
-      <input type="file" ref="pdfInput" hidden accept="application/pdf" @change="handlePdfUpload" />
+      <input type="file" ref="excelInput" hidden accept=".xls,.xlsx" @change="handleExcelUpload" />
     </div>
 
     <!-- 表格区域 -->
@@ -248,43 +248,72 @@ export default {
     triggerFileUpload() {
       this.$refs.fileInput.click()
     },
-    triggerPdfUpload() {
-      if (this.selectedItems.length !== 1) {
-        alert('请选中一条物流记录再上传 PDF / Please select one logistics record before uploading PDF')
-        return
-      }
-      this.$refs.pdfInput.click()
-    },
-    handlePdfUpload(event) {
-      const file = event.target.files[0]
-      if (!file || !file.name.endsWith('.pdf')) {
-        alert('请上传 PDF 文件 / Please upload a PDF file')
-        return
-      }
+    triggerExcelUpload() {
+          if (this.selectedItems.length !== 1) {
+            alert('请选中一条物流记录再上传 Excel / Please select one logistics record before uploading Excel');
+            return;
+          }
+          this.$refs.excelInput.click();
+        },
+        handleExcelUpload(event) {
+          const file = event.target.files[0];
 
-      const selected = this.logisticsList.find(item => item.id === this.selectedItems[0])
-      if (!selected || !selected.containerNumber) {
-        alert('所选记录无柜号，无法上传 / Selected record has no container number, upload is not possible')
-        return
-      }
+          // 文件检查
+          if (!file) {
+            alert('没有选择文件 / No file selected');
+            return;
+          }
 
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('containerNumber', selected.containerNumber)
-      const token = getToken()
+          if (!file.name.endsWith('.xls') && !file.name.endsWith('.xlsx')) {
+            alert('请上传 Excel 文件 / Please upload an Excel file');
+            return;
+          }
 
-      axios.post('http://47.91.89.160:8080/cus/uploadFile', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'Authorization': `${token}`,
-        }
-      }).then(() => {
-        alert('上传成功 / Upload successful')
-        this.refreshData()
-      }).catch(error => {
-        alert('上传失败 / Upload failed:' + error.message)
-      })
-    },
+          if (file.size > 10 * 1024 * 1024) { // 限制最大文件大小为 10MB
+            alert('文件过大，请上传小于 10MB 的 Excel 文件 / File is too large. Please upload an Excel file smaller than 10MB');
+            return;
+          }
+
+          const selected = this.findSelectedLogistics();
+          if (!selected) {
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('containerNumber', selected.containerNumber);
+
+          this.uploadExcel(formData);
+        },
+        findSelectedLogistics() {
+          const selected = this.logisticsList.find(item => item.id === this.selectedItems[0]);
+          if (!selected) {
+            alert('所选记录无效 / The selected record is invalid');
+            return null;
+          }
+
+          if (!selected.containerNumber) {
+            alert('所选记录无柜号，无法上传 / Selected record has no container number, upload is not possible');
+            return null;
+          }
+
+          return selected;
+        },
+        uploadExcel(formData) {
+          const token = getToken();
+
+          axios.post('http://47.91.89.160:8080/cus/uploadFile', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              'Authorization': `${token}`,
+            }
+          }).then(() => {
+            alert('上传成功 / Upload successful');
+            this.refreshData();
+          }).catch(error => {
+            alert(`上传失败 / Upload failed: ${error.message}`);
+          });
+        },
     handleFileUpload(event) {
       const file = event.target.files[0]
       if (!file || !file.name.endsWith('.xlsx')) {

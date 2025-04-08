@@ -5,17 +5,24 @@
     <!-- 操作按钮 -->
     <div class="button-group">
       <button @click="triggerFileUpload">{{ language === 'zh' ? '新增和更新' : 'Add / Update' }}</button>
+            <button @click="downloadFile('http://47.91.89.160:8080/cus/download/example/FCL_EU_Tracing_Upload_Template-Beta.xls')">
+              {{ language === 'zh' ? '下载示例' : 'Download Example' }}
+            </button>
       <button @click="deleteSelected">{{ language === 'zh' ? '删除' : 'Delete' }}</button>
       <button @click="refreshData">{{ language === 'zh' ? '刷新' : 'Refresh' }}</button>
-      <button @click="downloadExample">{{ language === 'zh' ? '下载示例' : 'Download Example' }}</button>
-      <button @click="triggerPdfUpload">{{ language === 'zh' ? '上传附件' : 'Upload PDF' }}</button>
+
+
+      <button @click="triggerExcelUpload">{{ language === 'zh' ? '上传附件' : 'Upload Customs_clearance_doc' }}</button>
+                  <button @click="downloadFile('http://47.91.89.160:8080/cus/download/example/Customs_clearance_doc(Beta)_EGLV143XXXXXXX.xlsx')">
+                    {{ language === 'zh' ? '下载清关附件' : 'Download Customs_clearance_doc' }}
+                  </button>
             <button @click="toggleLanguage" class="language-toggle-btn">
                   {{ language === 'zh' ? '切换到英文' : 'Switch to Chinese' }}
             </button>
 
       <!-- 隐藏的上传输入框 -->
       <input type="file" ref="fileInput" hidden @change="handleFileUpload" />
-      <input type="file" ref="pdfInput" hidden accept="application/pdf" @change="handlePdfUpload" />
+      <input type="file" ref="excelInput" hidden accept=".xls,.xlsx" @change="handleExcelUpload" />
     </div>
 
     <!-- 表格区域 -->
@@ -199,7 +206,6 @@ export default {
           },
     // 获取所有物流信息
     fetchLogistics() {
-      // 写死的 token
       const token = getToken()
       // 发送请求获取物流信息
       axios.post('http://47.91.89.160:8080/cus/fetchAll', {}, {
@@ -299,53 +305,72 @@ export default {
     },
 
     // 触发 PDF 上传
-        triggerPdfUpload() {
-          if (this.selectedItems.length !== 1) {
-            alert('请先选中一条物流记录，再上传附件。\nPlease select one logistics record before uploading the attachment.')
-            return
-          }
-          this.$refs.pdfInput.click()
-        },
+        triggerExcelUpload() {
+              if (this.selectedItems.length !== 1) {
+                alert('请选中一条物流记录再上传 Excel / Please select one logistics record before uploading Excel');
+                return;
+              }
+              this.$refs.excelInput.click();
+            },
+            handleExcelUpload(event) {
+              const file = event.target.files[0];
 
-        // 处理 PDF 上传
-        handlePdfUpload(event) {
-          const file = event.target.files[0]
-          if (!file || !file.name.endsWith('.pdf')) {
-            alert('请上传 PDF 文件\nPlease upload a PDF file')
-            return
-          }
+              // 文件检查
+              if (!file) {
+                alert('没有选择文件 / No file selected');
+                return;
+              }
 
-          // 获取选中物流记录的柜号
-          const selectedLogistics = this.logisticsList.find(item => item.id === this.selectedItems[0])
-          if (!selectedLogistics || !selectedLogistics.containerNumber) {
-            alert('所选记录无柜号，无法上传\nSelected record has no container number, cannot upload.')
-            return
-          }
+              if (!file.name.endsWith('.xls') && !file.name.endsWith('.xlsx')) {
+                alert('请上传 Excel 文件 / Please upload an Excel file');
+                return;
+              }
 
-          const containerNumber = selectedLogistics.containerNumber
-          this.uploadPdfFile(file, containerNumber)
-        },
+              if (file.size > 10 * 1024 * 1024) { // 限制最大文件大小为 10MB
+                alert('文件过大，请上传小于 10MB 的 Excel 文件 / File is too large. Please upload an Excel file smaller than 10MB');
+                return;
+              }
 
-        // 调用 API 上传 PDF 文件
-        uploadPdfFile(file, containerNumber) {
-          const formData = new FormData()
-          formData.append('file', file)
-          formData.append('containerNumber', containerNumber)
-      const token = getToken()
-          axios.post('http://47.91.89.160:8080/cus/uploadFile', formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-              'Authorization': `${token}`,
-            }
-          }).then(response => {
-            alert('附件上传成功！\nAttachment uploaded successfully!')
-            this.refreshData()
-          }).catch(error => {
-            console.error("附件上传失败", error)
-            alert("附件上传失败：" + (error.response.data || error.message) + "\nAttachment upload failed.");
+              const selected = this.findSelectedLogistics();
+              if (!selected) {
+                return;
+              }
 
-          })
-        },
+              const formData = new FormData();
+              formData.append('file', file);
+              formData.append('containerNumber', selected.containerNumber);
+
+              this.uploadExcel(formData);
+            },
+            findSelectedLogistics() {
+              const selected = this.logisticsList.find(item => item.id === this.selectedItems[0]);
+              if (!selected) {
+                alert('所选记录无效 / The selected record is invalid');
+                return null;
+              }
+
+              if (!selected.containerNumber) {
+                alert('所选记录无柜号，无法上传 / Selected record has no container number, upload is not possible');
+                return null;
+              }
+
+              return selected;
+            },
+            uploadExcel(formData) {
+              const token = getToken();
+
+              axios.post('http://47.91.89.160:8080/cus/uploadFile', formData, {
+                headers: {
+                  'Content-Type': 'multipart/form-data',
+                  'Authorization': `${token}`,
+                }
+              }).then(() => {
+                alert('上传成功 / Upload successful');
+                this.refreshData();
+              }).catch(error => {
+                alert(`上传失败 / Upload failed: ${error.message}`);
+              });
+            },
 
     // 删除选中的物流记录
     deleteSelected() {
@@ -383,23 +408,6 @@ export default {
     refreshData() {
       this.fetchLogistics()
     },
-
-        // 下载示例 Excel 文件
-        downloadExample() {
-          // 示例数据
-          const exampleData = [
-            ["No", "Receive Date", "Receive Time", "Waybill Number", "Customer Order Number", "Fw Tracking Number", "Container Number", "Status", "Logistics Channel Name", "Loading Port", "Loading Time", "Arrive Port", "Arrive Date", "Target Post Code", "Traget Country", "E-commerce", "Fulfillment Warehouse", "Is Remote", "CTNS", "TIL PCS", "Net Weight kg", "Gross Weight kg", "Measurement m3", "Bill Weight", "Confirmed Bill Weight", "CD Type", "CC Type", "CL Type", "Material", "Additional Notes", "DESCRIPTION", "CC Amount", "Problem Item Type", "Lading Number", "Latest Track Notes", "Track Update Time"],
-            [1, "2024/9/30", "1909", "CNxxxxxxxxxxxx", "Fxx952358", "1Z00xx6xxxxxxxxxxxxx", "XxKxx3xxxxx", "提交/Create", "中欧铁路UPS包税专线/China-Europe Railway DHL Tax-inclusive Line", "NingBo", "2024/11/27", "Duisburg, Germany", "2024/12/18", "12529", "德国/Germany", "Amazon", "DUS2", "Normal", 10, 100, 100, 100, 1.5, 105, "", "买单报关/customs declaration Proxy", "包税/Tax-inclusive", "整柜 AllInFCL", "", "棉衣Cotton-padded jackets", 100000, "N", "。"]
-          ];
-
-          // 创建工作簿
-          const ws = XLSX.utils.aoa_to_sheet(exampleData);
-          const wb = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(wb, ws, "Example");
-
-          // 导出文件
-          XLSX.writeFile(wb, "物流信息示例.xlsx");
-        },
 
     // 全选功能
     toggleSelectAll() {

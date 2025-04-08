@@ -46,7 +46,11 @@
         <tr v-for="logistics in logisticsList" :key="logistics.id">
           <td><input type="checkbox" v-model="selectedItems" :value="logistics.id" /></td>
 
-          <td>{{ getValue(logistics.latestTrackNotes) }}</td>
+          <td>
+                      <a href="javascript:void(0)" @click="fetchLogisticsHistory(logistics.id)">
+                        {{ getValue(logistics.latestTrackNotes) }}
+                      </a>
+                    </td>
           <td>{{ formatTimestamp(logistics.trackUpdateTime) }}</td>
           <td>{{ getValue(logistics.waybillNumber) }}</td>
           <td>{{ getValue(logistics.customerOrderNumber) }}</td>
@@ -81,6 +85,20 @@
         </tr>
       </tbody>
     </table>
+    <el-dialog title="历史轨迹  Historical Tracks" :visible.sync="historyDialogVisible" width="600px">
+          <div v-if="logisticsHistoryList && logisticsHistoryList.length">
+            <div v-for="(history, index) in logisticsHistoryList" :key="index" class="history-item">
+              <strong>轨迹备注 (Track Note):</strong> {{ history.note }}
+              <br/>
+              <strong>更新时间 (Update Time):</strong> {{ formatTimestamp(history.trackUpdateTime) }}
+              <hr />
+            </div>
+          </div>
+          <div v-else>没有历史轨迹 / No historical tracks available</div>
+          <template #footer>
+            <el-button @click="historyDialogVisible = false">关闭 / Close</el-button>
+          </template>
+        </el-dialog>
   </div>
 </template>
 
@@ -98,9 +116,29 @@ export default {
       logisticsList: [], // 物流数据
       selectedItems: [], // 选中的物流记录ID
       selectAll: false, // 全选状态
+            logisticsHistoryList: [],
+            historyDialogVisible: false,
     }
   },
   methods: {
+    // 点击最新轨迹，查询历史轨迹
+      fetchLogisticsHistory(logisticsId) {
+        axios.get(`http://47.91.89.160:8080/cus/getLogisticsHistory?logisticsId=${logisticsId}`, {
+          headers: { Authorization: getToken() }
+        }).then(response => {
+          this.logisticsHistoryList = response.data;
+          this.historyDialogVisible = true;  // 打开历史轨迹对话框
+        }).catch(error => {
+          alert('获取历史轨迹失败 / Failed to fetch historical tracks: ' + error.message);
+        });
+      },
+
+      // 格式化时间戳
+      formatTimestamp(timestamp) {
+        if (!timestamp) return '未提供 / Not Provided';
+        const date = new Date(timestamp);
+        return date.toLocaleString();
+      },
       toggleLanguage() {
           this.language = this.language === 'zh' ? 'en' : 'zh';
         },

@@ -16,8 +16,6 @@
       <input type="file" ref="pdfInput" hidden accept="application/pdf" @change="handlePdfUpload" />
     </div>
 
-
-
     <!-- 表格区域 -->
     <table class="logistics-table" border="1">
       <thead>
@@ -45,7 +43,11 @@
       <tbody>
         <tr v-for="logistics in logisticsList" :key="logistics.id">
           <td><input type="checkbox" v-model="selectedItems" :value="logistics.id" /></td>
-          <td>{{ getValue(logistics.latestTrackNotes) }}</td>
+          <td>
+            <a href="javascript:void(0)" @click="fetchLogisticsHistory(logistics.id)">
+              {{ getValue(logistics.latestTrackNotes) }}
+            </a>
+          </td>
           <td>{{ formatTimestamp(logistics.trackUpdateTime) }}</td>
           <td>{{ getValue(logistics.waybillNumber) }}</td>
           <td>{{ getValue(logistics.customerOrderNumber) }}</td>
@@ -80,13 +82,20 @@
     </table>
 
     <!-- 填写最新轨迹的对话框 -->
-    <el-dialog title="填写最新轨迹  Enter Latest Track Note" :visible.sync="noteDialogVisible">
-      <el-input
-        type="textarea"
+    <el-dialog
+      title="填写最新轨迹  Enter Latest Track Note"
+      :visible.sync="noteDialogVisible"
+      :append-to-body="true"
+      width="500px"
+    >
+      <!-- 换成普通 textarea 先排查 -->
+      <textarea
         v-model="noteInput"
         placeholder="请输入最新轨迹 / Please enter the latest trajectory."
         rows="4"
-      ></el-input>
+        style="width: 100%; min-height: 100px; padding: 8px; font-size: 14px;"
+      ></textarea>
+
       <span slot="footer" class="dialog-footer">
         <el-button @click="noteDialogVisible = false">取消 / Cancel</el-button>
         <el-button type="primary" @click="submitNote">确认 / Confirm</el-button>
@@ -102,6 +111,21 @@
       <div v-else>加载中... / Loading ...</div>
       <template #footer>
         <el-button @click="detailDialogVisible = false">关闭 / Close</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog title="历史轨迹  Historical Tracks" :visible.sync="historyDialogVisible" width="600px">
+      <div v-if="logisticsHistoryList && logisticsHistoryList.length">
+        <div v-for="(history, index) in logisticsHistoryList" :key="index" class="history-item">
+          <strong>轨迹备注 (Track Note):</strong> {{ history.note }}
+          <br/>
+          <strong>更新时间 (Update Time):</strong> {{ formatTimestamp(history.trackUpdateTime) }}
+          <hr />
+        </div>
+      </div>
+      <div v-else>没有历史轨迹 / No historical tracks available</div>
+      <template #footer>
+        <el-button @click="historyDialogVisible = false">关闭 / Close</el-button>
       </template>
     </el-dialog>
 
@@ -123,10 +147,30 @@ export default {
       noteDialogVisible: false,
       noteText: '',
       detailDialogVisible: false,
-      logisticsDetail: null
+      logisticsDetail: null,
+      logisticsHistoryList: [],
+      historyDialogVisible: false,
     }
   },
   methods: {
+  // 点击最新轨迹，查询历史轨迹
+    fetchLogisticsHistory(logisticsId) {
+      axios.get(`http://47.91.89.160:8080/cus/getLogisticsHistory?logisticsId=${logisticsId}`, {
+        headers: { Authorization: getToken() }
+      }).then(response => {
+        this.logisticsHistoryList = response.data;
+        this.historyDialogVisible = true;  // 打开历史轨迹对话框
+      }).catch(error => {
+        alert('获取历史轨迹失败 / Failed to fetch historical tracks: ' + error.message);
+      });
+    },
+
+    // 格式化时间戳
+    formatTimestamp(timestamp) {
+      if (!timestamp) return '未提供 / Not Provided';
+      const date = new Date(timestamp);
+      return date.toLocaleString();
+    },
     toggleLanguage() {
         this.language = this.language === 'zh' ? 'en' : 'zh';
       },

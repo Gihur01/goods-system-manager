@@ -1,13 +1,15 @@
 <template>
   <div class="container">
+    <!-- 标题 -->
     <h2 class="title">{{ language === 'zh' ? 'NEO 清关跟踪系统' : 'NEO Customs Clearance Tracking System' }}</h2>
+    <!-- 查询 -->
     <div>
       <!-- 时间选择器 -->
       <el-date-picker
         v-model="dateRange"
         type="daterange"
-        start-placeholder="开始日期"
-        end-placeholder="结束日期"
+        start-placeholder="start date"
+        end-placeholder="end date"
         format="yyyy-MM-dd"
         value-format="yyyy-MM-dd"
         unlink-panels
@@ -29,7 +31,6 @@
         {{ language === 'zh' ? '下载示例' : 'Download Example' }}
       </button>
       <button @click="deleteSelected">{{ language === 'zh' ? '删除' : 'Delete' }}</button>
-
 
       <button @click="triggerExcelUpload">{{ language === 'zh' ? '上传附件' : 'Upload Customs_clearance_doc' }}</button>
       <button
@@ -64,6 +65,7 @@
         <th>{{ language === 'zh' ? '卸柜时间' : 'Arrival Date' }}</th>
         <th>{{ language === 'zh' ? '收件日期' : 'Receive Date' }}</th>
         <th>{{ language === 'zh' ? '收件时间' : 'Receive Time' }}</th>
+        <th>{{ language === 'zh' ? '创建时间' : 'Create Time' }}</th>
         <th>{{ language === 'zh' ? '清关材料' : 'Customs Docs' }}</th>
         <th>{{ language === 'zh' ? '清关结果' : 'Customs Clearance Result' }}</th>
       </tr>
@@ -91,7 +93,7 @@
         <td>{{ getValue(logistics.arrivalDate) }}</td>
         <td>{{ getValue(logistics.receiveDate) }}</td>
         <td>{{ getValue(logistics.receiveTime) }}</td>
-
+        <td>{{ formatTimestamp(logistics.createTime) }}</td>
         <td>
           <template v-if="logistics.customsClearanceMaterials">
             <a href="javascript:void(0)" @click="downloadFile(logistics.customsClearanceMaterials)">
@@ -112,10 +114,11 @@
       </tr>
       </tbody>
     </table>
+
     <el-dialog title="历史轨迹  Historical Tracks" :visible.sync="historyDialogVisible" width="600px">
       <div v-if="logisticsHistoryList && logisticsHistoryList.length">
         <div v-for="(history, index) in logisticsHistoryList" :key="index" class="history-item">
-          <strong>轨迹备注 (Track Note):</strong> {{ history.note }}
+          <strong>轨迹 (Track Note):</strong> {{ history.note }}
           <br/>
           <strong>更新时间 (Update Time):</strong> {{ formatTimestamp(history.trackUpdateTime) }}
           <hr/>
@@ -302,18 +305,27 @@ export default {
       })
     },
 
-    // 触发 PDF 上传
     triggerExcelUpload() {
-      if (this.selectedItems.length !== 1) {
-        alert('请选中一条物流记录再上传 Excel / Please select one logistics record before uploading Excel');
+      if (this.selectedItems.length < 1) {
+        alert('请至少选择一条物流记录 / Please select at least one logistics record');
         return;
       }
+
+      // 所有记录的 containerNumber
+      const selectedLogistics = this.logisticsList.filter(item => this.selectedItems.includes(item.id));
+      const containerNumbers = selectedLogistics.map(item => item.containerNumber);
+      const uniqueContainerNumbers = [...new Set(containerNumbers)];
+
+      if (uniqueContainerNumbers.length > 1) {
+        alert('所选记录的 containerNumber 不一致，请重新选择 / Selected records have inconsistent containerNumber');
+        return;
+      }
+
       this.$refs.excelInput.click();
     },
-    handleExcelUpload(event) {
-      const file = event.target.files[0];
 
-      // 文件检查
+    async handleExcelUpload(event) {
+      const file = event.target.files[0];
       if (!file) {
         alert('没有选择文件 / No file selected');
         return;
@@ -324,40 +336,45 @@ export default {
         return;
       }
 
-      if (file.size > 10 * 1024 * 1024) { // 限制最大文件大小为 10MB
-        alert('文件过大，请上传小于 10MB 的 Excel 文件 / File is too large. Please upload an Excel file smaller than 10MB');
+      if (file.size > 10 * 1024 * 1024) {
+        alert('文件太大，请上传小于 10MB 的文件 / File too large');
         return;
       }
 
-      const selected = this.findSelectedLogistics();
-      if (!selected) {
+      const selectedLogistics = this.logisticsList.filter(item => this.selectedItems.includes(item.id));
+      const containerNumbers = selectedLogistics.map(item => item.containerNumber);
+      const uniqueContainerNumbers = [...new Set(containerNumbers)];
+
+      if (uniqueContainerNumbers.length !== 1) {
+        alert('所选记录的 containerNumber 不一致 / Container numbers do not match');
         return;
       }
+
+      const containerNumber = uniqueContainerNumbers[0];
+      const containerIds = selectedLogistics.map(item => item.id);  // 需要传递的 IDs
+
+      // 创建一个 JSON 对象，包含 ids 和 containerNumber
+      const requestData = {
+        ids: containerIds,
+        containerNumber: containerNumber
+      };
 
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('containerNumber', selected.containerNumber);
+      formData.append('requestData', JSON.stringify(requestData));  // 传递 requestData 对象
 
-      this.uploadExcel(formData);
-    },
-    findSelectedLogistics() {
-      const selected = this.logisticsList.find(item => item.id === this.selectedItems[0]);
-      if (!selected) {
-        alert('所选记录无效 / The selected record is invalid');
-        return null;
+      try {
+        await this.uploadExcel(formData);  // 上传清关结果
+      } catch (e) {
+        alert('上传失败：' + e.message);
+      } finally {
+        event.target.value = ''; // 允许重复上传同一文件
       }
-
-      if (!selected.containerNumber) {
-        alert('所选记录无柜号，无法上传 / Selected record has no container number, upload is not possible');
-        return null;
-      }
-
-      return selected;
     },
     uploadExcel(formData) {
       const token = getToken();
 
-      axios.post('http://47.91.89.160:8080/cus/uploadFile', formData, {
+      axios.post('http://47.91.89.160:8080/cus/uploadClearanceMaterials', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `${token}`,

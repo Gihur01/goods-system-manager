@@ -27,7 +27,7 @@
     <div class="button-group">
       <button @click="triggerFileUpload">{{ language === 'zh' ? '新增和更新' : 'Add / Update' }}</button>
       <button
-        @click="downloadFile('http://47.91.89.160:8080/cus/download/example/FCL_EU_Tracing_Upload_Template-Beta.xls')">
+        @click="downloadFile('http://47.91.89.160:8080/cus/download/example/FCL_EU_Tracing_Upload_Template-NEO.xls')">
         {{ language === 'zh' ? '下载示例' : 'Download Example' }}
       </button>
       <button @click="deleteSelected">{{ language === 'zh' ? '删除' : 'Delete' }}</button>
@@ -250,8 +250,8 @@ export default {
     // 处理文件上传
     handleFileUpload(event) {
       const file = event.target.files[0]
-      if (!file || !file.name.endsWith('.xlsx')) {
-        alert('请上传有效的 Excel 文件\nPlease upload a valid Excel file')
+      if (!file || (!file.name.endsWith('.xls') && !file.name.endsWith('.xlsx'))) {
+        alert('请上传有效的 Excel 文件 (.xls 或 .xlsx)')
         return
       }
 
@@ -261,7 +261,18 @@ export default {
         const workbook = XLSX.read(binaryStr, {type: 'binary'})
         const sheetName = workbook.SheetNames[0] // 读取第一个工作表
         const worksheet = workbook.Sheets[sheetName]
-        const jsonData = XLSX.utils.sheet_to_json(worksheet)
+        const rawData = XLSX.utils.sheet_to_json(worksheet, {header: 1})  // 每一行是数组
+        const headers = rawData[1]  // 第二行作为字段名
+        const dataRows = rawData.slice(2) // 从第三行开始是数据
+
+        // 将每行数组转成对象
+        const jsonData = dataRows.map(row => {
+          const obj = {}
+          headers.forEach((key, index) => {
+            obj[key] = row[index]
+          })
+          return obj
+        })
 
         // 将 Excel 中的数据转化为符合后端接口要求的格式
         const formattedData = jsonData.map(row => ({
@@ -271,21 +282,36 @@ export default {
           customerOrderNumber: row['Customer Order Number'],
           fwTrackingNumber: row['Fw Tracking Number'],
           containerNumber: row['Container Number'],
-          status: row['Status'],
           logisticsChannel: row['Logistics Channel Name'],
           loadingPort: row['Loading Port'],
           loadingTime: row['Loading Time'],
           arrivalPort: row['Arrive Port'],
           arrivalDate: row['Arrive Date'],
-          latestTrackNotes: row['Latest Track Notes'],
-          trackUpdateTime: row['Track Update Time'],
-          // Add more fields here as per your API
+          targetPostcode: row['Target Post Code'],
+          targetCountry: row['Traget Country'],
+          ecommercePlatform: row['E-commerce'],
+          fulfillmentWarehouse: row['Fulfillment Warehouse'],
+          isRemote: row['Is Remote'],
+          ctns: row['CTNS'],
+          tilPcs: row['TIL PCS'],
+          netWeight: row['Net Weight kg'],
+          grossWeight: row['Gross Weight kg'],
+          measurement: row['Measurement m3'],
+          billWeight: row['Bill Weight'],
+          confirmedBillWeight: row['Confirmed Bill Weight'],
+          cdType: row['CD Type'],
+          ccType: row['CC Type'],
+          clType: row['CL Type'],
+          material: row['Material'],
+          additionalNotes: row['Additional Notes'],
+          description: row['DESCRIPTION'],
+          ccAmount: row['CC Amount'],
         }))
 
         // 调用接口保存/更新物流记录
         this.saveOrUpdateLogistics(formattedData)
       }
-      reader.readAsArrayBuffer(file)  // 使用readAsArrayBuffer
+      reader.readAsBinaryString(file)
     },
 
 
@@ -395,18 +421,12 @@ export default {
       }
 
       // 获取选中的数据
-      const logisticsListToDelete = this.selectedItems.map(id => {
-        const logistics = this.logisticsList.find(item => item.id === id)
-        return {
-          waybillNumber: logistics.waybillNumber,
-          customerOrderNumber: logistics.customerOrderNumber,
-          fwTrackingNumber: logistics.fwTrackingNumber
-        }
-      })
+      const selectedLogistics = this.logisticsList.filter(item => this.selectedItems.includes(item.id));
+      const selectedIds = selectedLogistics.map(item => item.id);
 
       // 发送删除请求
       const token = getToken()
-      axios.post('http://47.91.89.160:8080/cus/removeLogistics', logisticsListToDelete, {
+      axios.post('http://47.91.89.160:8080/cus/removeLogistics', selectedIds, {
         headers: {
           'Authorization': `${token}`,
         }

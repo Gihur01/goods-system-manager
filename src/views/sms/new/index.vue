@@ -33,7 +33,6 @@
         {{ language === 'zh' ? '切换到英文' : 'Switch to Chinese' }}
       </button>
       <!-- 隐藏的上传输入框 -->
-      <input type="file" ref="fileInput" hidden @change="handleFileUpload"/>
       <input type="file" ref="excelInput" hidden accept=".xls,.xlsx" @change="handleExcelUpload"/>
     </div>
 
@@ -345,54 +344,6 @@ export default {
       }).catch(error => {
         alert(`上传失败 / Upload failed: ${error.message}`);
       });
-    },
-    handleFileUpload(event) {
-      const file = event.target.files[0]
-      if (!file || !file.name.endsWith('.xlsx')) {
-        alert('请上传 Excel 文件 / Please upload an Excel file')
-        return
-      }
-
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const workbook = XLSX.read(e.target.result, {type: 'binary'})
-        const sheetName = workbook.SheetNames[0]
-        const worksheet = workbook.Sheets[sheetName]
-        const jsonData = XLSX.utils.sheet_to_json(worksheet)
-
-        const formatted = jsonData.map(row => ({
-          receiveDate: row['Receive Date'],
-          receiveTime: row['Receive Time'],
-          waybillNumber: row['Waybill Number'],
-          customerOrderNumber: row['Customer Order Number'],
-          fwTrackingNumber: row['Fw Tracking Number'],
-          containerNumber: row['Container Number'],
-          status: row['Status'],
-          logisticsChannel: row['Logistics Channel Name'],
-          loadingPort: row['Loading Port'],
-          loadingTime: row['Loading Time'],
-          arrivalPort: row['Arrive Port'],
-          arrivalDate: row['Arrive Date'],
-          latestTrackNotes: row['Latest Track Notes'],
-          trackUpdateTime: row['Track Update Time'],
-        }))
-
-        this.saveOrUpdateLogistics(formatted)
-      }
-      reader.readAsBinaryString(file)
-    },
-    saveOrUpdateLogistics(data) {
-      const token = getToken()
-      axios.post('http://47.91.89.160:8080/cus/saveOrUpdate', data, {
-        headers: {
-          Authorization: `${token}`,
-        }
-      }).then(() => {
-        alert('操作成功 / Operation successful')
-        this.refreshData()
-      }).catch(error => {
-        alert('保存/更新失败 / Save/Update failed: ' + error.message)
-      })
     },
     toggleSelectAll() {
       this.selectedItems = this.selectAll ? this.logisticsList.map(item => item.id) : []

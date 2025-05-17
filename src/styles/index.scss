@@ -1,0 +1,290 @@
+@import './variables.scss';
+@import './mixin.scss';
+@import './transition.scss';
+@import './element-ui.scss';
+@import './sidebar.scss';
+
+body {
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Arial, sans-serif;
+}
+
+html {
+  box-sizing: border-box;
+}
+
+
+
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+
+div:focus{
+  outline: none;
+}
+
+a:focus,
+a:active {
+  outline: none;
+}
+
+a,
+a:focus,
+a:hover {
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+}
+
+.clearfix {
+  &:after {
+    visibility: hidden;
+    display: block;
+    font-size: 0;
+    content: " ";
+    clear: both;
+    height: 0;
+  }
+}
+
+//main-container全局样式
+.app-main{
+  min-height: 100%
+}
+
+.app-container {
+  padding: 20px;
+}
+
+//搜索栏样式
+.filter-container, .filter-form {
+
+}
+
+
+//操作栏样式
+.operate-container {
+  margin-top: 20px;
+}
+
+.operate-container .btn-add {
+  float: right;
+}
+
+//表格栏样式
+.table-container {
+  margin-top: 20px;
+}
+
+//批量操作栏样式
+.batch-operate-container {
+  display: inline-block;
+  margin-top: 20px;
+}
+
+//分页栏样式
+.pagination-container {
+  display: inline-block;
+  margin-top: 20px;
+}
+
+//添加、更新表单样式
+.form-container {
+  position: absolute;
+  left: 0;
+  right: 0;
+  width: 720px;
+  padding: 35px 35px 15px 35px;
+  margin: 20px auto;
+}
+
+//主标题
+.font-extra-large {
+  font-size: 20px;
+  color: #303133;
+}
+
+//标题
+.font-title-large {
+  font-size: 18px;
+  color: #303133;
+}
+
+//小标题
+.font-title-medium {
+  font-size: 16px;
+  color: #303133;
+}
+
+//正文
+.font-medium {
+  font-size: 16px;
+  color: #606266;
+}
+
+//正文
+.font-small {
+  font-size: 14px;
+  color: #606266;
+}
+
+//正文（小）
+.font-extra-small {
+  font-size: 13px;
+  color: #606266;
+}
+
+.color-main {
+  color: #409EFF;
+}
+
+.color-success {
+  color: #67C23A;
+}
+
+.color-warning {
+  color: #E6A23C;
+}
+
+.color-danger {
+  color: #F56C6C;
+}
+
+.color-info {
+  color: #909399;
+}
+
+
+//the following are styles for the product page
+.grid-container{
+  display: grid;
+  grid-template-columns: repeat(10, 1fr); /* 每行 10 列 */
+  gap: 16px; /* 卡片之间的间距 */
+  margin-top: 20px;
+}
+.grid-item {
+  width: 100%;
+}
+#product-grid{
+  grid-template-columns: repeat(auto-fill, 150px);
+}
+#order-grid{
+  // grid-template-columns: repeat(auto-fill, 400px);
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+  // align-items: start; /* Crucial - prevents row stretching */
+}
+#order-item-grid{
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) 2fr 1fr; /* Fixed width columns */
+  gap: 16px; /* Space between rows and columns */
+}
+
+
+.grid-item{
+  // background: #e2e8f0;
+  // width: 150px;
+  text-align: left;
+  border: 1px solid;
+  border-color: #e8f7f0;
+}
+
+.grid-item  {
+  // background: #e8f7f0;
+
+}
+.grid-item:hover{
+  background: #e8f7f0;
+}
+
+.product-container{
+  display: contents;
+}
+
+.product-text{
+  padding-top: 6px;
+  padding-bottom: 6px;
+  // max-width: 150px;
+  min-width: 0;
+}
+
+#item-title{
+  white-space: nowrap; /* Prevent text wrapping */
+  overflow: hidden; /* Hide overflowing text */
+  text-overflow: ellipsis; /* Show "..." for overflowed text */
+}
+
+#product-title{
+  max-height: 5em;
+  white-space: nowrap; /* Prevent text wrapping */
+  overflow: hidden; /* Hide overflowing text */
+  text-overflow: ellipsis; /* Show "..." for overflowed text */
+}
+
+.item-price{
+  color: #EB0D0D;
+}
+.item-stock{
+  color: #DBAB22;
+}
+
+.month-picker{
+  max-width: 150px;
+}
+
+
+
+
+//flexbox: the two filter boxes
+.flex-filter-container{
+  display: flex;
+  gap: 16px;
+  // width: 100%;
+  flex-wrap: wrap;
+}
+
+
+.input-group{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap; /* Ensures label and input stay together */
+  min-width: 200px; /* Prevents them from becoming too small */
+}
+
+#select-country,#select-warehouse{
+  width: 150px;
+}
+
+.category-selection-container, .tag-selection-container{
+  flex: 1;
+  // padding: 20px;
+  // text-align: center;
+  // border-radius: 8px;
+}
+/* When screen width is less than 1000px, stack elements vertically */
+@media (max-width: 999px) {
+  .flex-filter-container{
+    flex-direction: column;
+    gap:0px;
+  }
+  .flex-filter-item {
+    width: 100%;
+  }
+  #brand-selector{
+    margin-bottom: 1em;
+  }
+}
+
+.filter-label{
+  display: inline-block;
+  // width: 80px;
+}
+
+// .tag-button:hover{
+//   color:#88c2fc ;
+// }
